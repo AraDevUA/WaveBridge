@@ -8,6 +8,6 @@ public class UserConnection
     public StreamingServices Service { get; set; }
     public string RefreshToken { get; set; }
     public string AccessToken { get; set; }
-    public DateTime AccessTokenExpiresAt { get; set; }
-    public User User { get; set; }
+    public DateTimeOffset AccessTokenExpiresAtUtc { get; set; }
+    public virtual User User { get; set; }
 }
