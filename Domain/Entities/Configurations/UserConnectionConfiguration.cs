@@ -7,5 +7,12 @@ public class UserConnectionConfiguration : IEntityTypeConfiguration<UserConnecti
 {
     public void Configure(EntityTypeBuilder<UserConnection> builder)
     {
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(u => u.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(c => c.Service)
+            .IsRequired();
     }
 }

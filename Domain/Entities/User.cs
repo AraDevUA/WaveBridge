@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Domain.Entities;
 
-public class User : IdentityUser<Guid>, IAuditableEntity, ISoftDeletableEntity
+public class User : IdentityUser<Guid>, IEntity<Guid>, IAuditableEntity, ISoftDeletableEntity
 {
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset? ModifiedUtc { get; set; }

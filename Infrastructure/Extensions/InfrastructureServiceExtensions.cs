@@ -22,12 +22,8 @@ public static class InfrastructureServiceExtensions
             options.UseLazyLoadingProxies();
         });
 
-        services.AddRepositories();
+        services.AddScoped(typeof(IRepository<,>), typeof(ApplicationRepository<,>));
 
         return services;
-    }
-    public static void AddRepositories(this IServiceCollection services)
-    {
-        services.AddScoped(typeof(IRepository<,>), typeof(ApplicationRepository<,>));
     }
 }
