@@ -9,6 +9,6 @@ public class UserConfiguration : AuditableEntityConfiguration<User, Guid>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        
+        base.Configure(builder);
     }
 }

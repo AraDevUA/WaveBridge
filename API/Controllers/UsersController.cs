@@ -1,4 +1,6 @@
 ﻿using API.Extensions;
+using Application.Dto.Request.Auth;
+using Application.Dto.Request.Users;
 using Application.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +16,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{Id}")]
-    public async Task<IResult> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<IResult> GetByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var result = await _userService.GetByIdAsync(id, cancellationToken);
         return result.ToApiResult();
@@ -25,4 +27,18 @@ public class UsersController : ControllerBase
         var result = await _userService.GetAllAsync(cancellationToken);
         return result.ToApiResult();
     }
+    [HttpPut("{id}")]
+    public async Task<IResult> UpdateAsync([FromRoute] Guid id, [FromBody] UserUpdateDto dto)
+    {
+        var result = await _userService.UpdateAsync(id, dto);
+        return result.ToApiResult();
+    }
+    [HttpDelete("{id}")]
+    public async Task<IResult> DeleteAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _userService.DeleteAsync(id, cancellationToken);
+        return result.ToApiResult();
+    }
+
+
 }

@@ -11,7 +11,7 @@ public class TransferOperation : IAuditableEntity, ISoftDeletableEntity
     public StreamingServices TargetService { get; set; }
     public TransferStatus Status { get; set; }
 
-    public DateTimeOffset CreatedUtc { get; set; }
+    public DateTimeOffset? CreatedUtc { get; set; }
     public DateTimeOffset? ModifiedUtc { get; set; }
     public DateTimeOffset? DeletedUtc { get; set; }
     public bool IsDeleted { get; set; }

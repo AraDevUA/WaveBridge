@@ -11,7 +11,7 @@ public class AuditableEntityConfiguration<TEntity, TKey> : IEntityTypeConfigurat
         builder.HasKey(e => e.Id);
 
         builder.Property(e => e.CreatedUtc)
-            .HasDefaultValueSql("GetUtcDate()")
+            .HasDefaultValueSql("timezone('utc', now())")
             .ValueGeneratedOnAdd();
     }
 }
