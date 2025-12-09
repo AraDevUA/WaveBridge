@@ -1,7 +1,6 @@
 ﻿using Application.Dto.DtoExtensions;
 using Application.Dto.Jwt;
 using Application.Dto.Request.Auth;
-using Application.Dto.Response.Auth;
 using Application.Providers.Contracts;
 using Application.Results;
 using Application.Results.Interfaces;
@@ -17,17 +16,10 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
     private readonly IJwtProvider _jwtProvider;
-
-    //TODO:delete, code for cookies
-    private readonly JwtOptions _jwtOptions;
-    private readonly IHttpContextAccessor _httpContext; 
     public AuthService(UserManager<User> userManager, IJwtProvider jwtProvider, IHttpContextAccessor httpContext, IOptions<JwtOptions> jwtOptions)
     {
         _userManager = userManager;
         _jwtProvider = jwtProvider;
-        //TODO:delete, code for cookies
-        _httpContext=httpContext;
-        _jwtOptions=jwtOptions.Value;
     }
     public async Task<IServiceResult> LoginAsync(LoginRequestDto dto, CancellationToken cancellationToken = default)
     {
@@ -39,12 +31,7 @@ public class AuthService : IAuthService
         if (!isPasswordValid)
             return ServiceResults.Unauthorized();
 
-        //return ServiceResults.Ok(await _jwtProvider.GenerateTokensAsync(user, cancellationToken));
-
-        //TODO:delete, code for cookies
-        var tokens = await _jwtProvider.GenerateTokensAsync(user, cancellationToken);
-        SetTokensInCookies(tokens);
-        return ServiceResults.Ok(tokens);
+        return ServiceResults.Ok(await _jwtProvider.GenerateTokensAsync(user, cancellationToken));
     }
     public async Task<IServiceResult> RegisterAsync(RegisterRequestDto dto, CancellationToken cancellationToken = default)
     {
@@ -64,32 +51,5 @@ public class AuthService : IAuthService
     {
         var result = await _jwtProvider.RefreshAccessTokenAsync(refreshToken, cancellationToken);
         return result is null ? ServiceResults.Unauthorized() : ServiceResults.Ok(result);
-    }
-    //TODO:delete, code for cookies
-    private void SetTokensInCookies(AuthResponseDto tokens)
-    {
-        if (_httpContext.HttpContext == null)
-            return;
-
-        var accessCookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Path = "/",
-            Expires = DateTimeOffset.UtcNow.AddHours(_jwtOptions.ExpiresHours)
-        };
-
-        var refreshCookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Path = "/",
-            Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenLifetimeDays)
-        };
-
-        _httpContext.HttpContext.Response.Cookies.Append("access_token", tokens.Token, accessCookieOptions);
-        _httpContext.HttpContext.Response.Cookies.Append("refresh_token", tokens.RefreshToken, refreshCookieOptions);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Application.Dto.DtoExtensions;
-using Application.Dto.Jwt;
 using Application.Dto.Options;
 using Application.Dto.Response.Auth;
 using Application.Helpers;
@@ -26,8 +25,6 @@ public class GoogleAuthService : IGoogleAuthService
     private readonly IRepository<UserOAuthConnection, Guid> _userOAuthConnectionRepository;
     private readonly UserManager<User> _userManager;
     private readonly IJwtProvider _jwtProvider;
-    //TODO:delete, code for cookies
-    private readonly JwtOptions _jwtOptions;
     public GoogleAuthService(
             IOptions<GoogleAuthOptions> googleOptions,
             IOptions<EncryptionOptions> encryptionOptions,
@@ -35,8 +32,7 @@ public class GoogleAuthService : IGoogleAuthService
             HttpClientHelper httpClientHelper,
             IRepository<UserOAuthConnection, Guid> userOAuthConnectionRepository,
             UserManager<User> userManager,
-            IJwtProvider jwtProvider,
-            IOptions<JwtOptions> jwtOptions)//TODO:delete, code for cookies
+            IJwtProvider jwtProvider)
     {
         _googleOptions = googleOptions.Value;
         _encryptionOptions = encryptionOptions.Value;
@@ -45,7 +41,6 @@ public class GoogleAuthService : IGoogleAuthService
         _userOAuthConnectionRepository = userOAuthConnectionRepository;
         _userManager=userManager;
         _jwtProvider=jwtProvider;
-        _jwtOptions=jwtOptions.Value;//TODO:delete, code for cookies
     }
     public async Task<UserOAuthConnection?> GetUserOAuthConnectionAsync(Guid Id, CancellationToken cancellationToken = default)
     {
@@ -82,13 +77,7 @@ public class GoogleAuthService : IGoogleAuthService
 
         await UpsertGoogleConnectionAsync(user, googleUser, tokenResult, cancellationToken);
 
-        //return ServiceResults.Ok(await _jwtProvider.GenerateTokensAsync(user, cancellationToken));
-
-        //TODO:delete, code for cookies
-        var tokens = await _jwtProvider.GenerateTokensAsync(user, cancellationToken);
-        SetTokensInCookies(tokens);
-
-        return ServiceResults.Ok(tokens);
+        return ServiceResults.Ok(await _jwtProvider.GenerateTokensAsync(user, cancellationToken));
     }
     public async Task<GoogleTokenResponseDto> RefreshAccessTokenAsync(UserOAuthConnection connection, CancellationToken cancellationToken = default)
     {
@@ -170,33 +159,6 @@ public class GoogleAuthService : IGoogleAuthService
             return null;
 
         return AesGcmHelper.Encrypt(refreshToken, _encryptionOptions.KeyBase64);
-    }
-    //TODO:delete, code for cookies
-    private void SetTokensInCookies(AuthResponseDto tokens)
-    {
-        if (_httpContext.HttpContext == null)
-            return;
-
-        var accessCookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Path = "/",
-            Expires = DateTimeOffset.UtcNow.AddHours(_jwtOptions.ExpiresHours) 
-        };
-
-        var refreshCookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Path = "/",
-            Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenLifetimeDays)
-        };
-
-        _httpContext.HttpContext.Response.Cookies.Append("access_token", tokens.Token, accessCookieOptions);
-        _httpContext.HttpContext.Response.Cookies.Append("refresh_token", tokens.RefreshToken, refreshCookieOptions);
     }
 
 }
