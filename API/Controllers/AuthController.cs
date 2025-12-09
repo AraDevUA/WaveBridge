@@ -1,8 +1,6 @@
 ﻿using API.Extensions;
 using Application.Dto.Request.Auth;
-using Application.Services;
 using Application.Services.Contracts;
-using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -43,17 +41,4 @@ public class AuthController : ControllerBase
     //public async Task<IResult> ResetPassword()
     //{//TODO: Implement password reset functionality
     //}
-    [HttpGet("redirect")]
-    public async Task<IResult> RedirectOnOAuthServer(CancellationToken cancellationToken)
-    {
-        var result = await _authService.RedirectOnOAuthServerAsync(cancellationToken);
-        return Results.Redirect(result);
-    }
-    [HttpGet("callback")]
-    public async Task<IResult> OAuthCallback(string code, CancellationToken cancellationToken)
-    {
-        var result = await _authService.OAuthCallbackAsync(code, cancellationToken);
-        return result.ToApiResult();
-    }
-
 }

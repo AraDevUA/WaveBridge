@@ -36,11 +36,14 @@ namespace Application.Services
         }
         public async Task<IServiceResult> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var users = await _userManager.Users
+            //TODO: paged
+            var users = await _userRepository.All
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
-            return ServiceResults.Ok(users);
+            var result = users.Select(u => u.ToDto()).ToList();
+
+            return ServiceResults.Ok(result);
         }
         public async Task<IServiceResult> UpdateAsync(Guid id, UserUpdateDto dto)
         {

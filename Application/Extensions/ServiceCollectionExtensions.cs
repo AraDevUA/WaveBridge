@@ -1,4 +1,5 @@
-﻿using Application.Dto.Options;
+﻿using Application.Dto.Jwt;
+using Application.Dto.Options;
 using Application.Helpers;
 using Application.Providers;
 using Application.Providers.Contracts;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
         #region services
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IGoogleAuthService, GoogleAuthService>();
         services.AddScoped<IJwtProvider, JwtProvider>();
 
         #endregion
@@ -27,8 +29,20 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<HttpClientHelper>();
         #endregion
 
-        services.Configure<GoogleAuthOptions>(configuration.GetSection("Authentication:Google"));
-        services.Configure<EncryptionOptions>(configuration.GetSection("Encryption"));
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection("JwtOptions"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<GoogleAuthOptions>()
+            .Bind(configuration.GetSection("OAuth:Google"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<EncryptionOptions>()
+            .Bind(configuration.GetSection("Encryption"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         services.AddApplicationInfrastructure(configuration);
         return services;

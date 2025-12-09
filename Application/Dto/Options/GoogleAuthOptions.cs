@@ -8,13 +8,10 @@ public record GoogleAuthOptions
     public string ClientId { get; init; }
     [Required]
     public string ClientSecret { get; init; }
-    //TODO: delete if not used
-    [Required]
-    public string RedirectUri { get; init; }
     [Required]
     public string CallbackUri { get; init; }
     [Required]
-    public string OAuthServerEndpoint { get; init; }
+    public ScopesOptions Scopes { get; init; }
     [Required]
-    public string TokenEndpoint { get; init; }
+    public EndpointsOptions Endpoints { get; init; }
 }

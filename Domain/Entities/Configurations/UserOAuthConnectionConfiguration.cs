@@ -15,9 +15,6 @@ public class UserOAuthConnectionConfiguration : IEntityTypeConfiguration<UserOAu
             .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(c => c.)
-            .IsRequired();
-
         builder.Property(c => c.ProviderUserId)
             .IsRequired();
 

@@ -3,11 +3,11 @@ using Application.Dto.Jwt;
 using Application.Dto.Response.Auth;
 using Application.Helpers;
 using Application.Providers.Contracts;
-using Castle.Core.Logging;
 using Domain.Entities;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -21,13 +21,13 @@ public class JwtProvider : IJwtProvider
     private readonly JwtOptions _options;
     private readonly IRepository<RefreshToken, Guid> _refreshTokenRepository;
     private readonly UserManager<User> _userManager;
-    //private readonly ILogger<JwtProvider> _logger;
-    public JwtProvider(IOptions<JwtOptions> options, IRepository<RefreshToken, Guid> refreshTokenRepository, UserManager<User> userManager/*, ILogger<JwtProvider> logger*/)
+    private readonly ILogger<JwtProvider> _logger;
+    public JwtProvider(IOptions<JwtOptions> options, IRepository<RefreshToken, Guid> refreshTokenRepository, UserManager<User> userManager, ILogger<JwtProvider> logger)
     {
         _options = options.Value;
         _refreshTokenRepository = refreshTokenRepository;
         _userManager = userManager;
-        //_logger = logger;
+        _logger = logger;
     }
 
     public async Task<AuthResponseDto> GenerateTokensAsync(User user, CancellationToken cancellationToken = default)
@@ -67,19 +67,16 @@ public class JwtProvider : IJwtProvider
         if (refreshToken is null || refreshToken.IsRevoked || refreshToken.ExpiresAt <= DateTime.UtcNow)
             return null;
 
-        ////TODO: Log security incident
-        //if (refreshToken.IsRevoked)
-        //{
-        //    await RevokeAllUserRefreshTokensAsync(refreshToken.UserId, cancellationToken);
-        //    _logger.LogWarning("");
-        //    return null;
-        //}
+        if (refreshToken.IsRevoked)
+        {
+            await RevokeAllUserRefreshTokensAsync(refreshToken.UserId, cancellationToken);
+            return null;
+        }
 
         var user = refreshToken.User;
         var roles = await _userManager.GetRolesAsync(user);
         var newAccessToken = GenerateAccessToken(user, roles);
 
-        // Revoke old refresh token is not saved yet
         refreshToken.IsRevoked = true;
         await _refreshTokenRepository.UpdateAsync(refreshToken, cancellationToken);
 
@@ -101,7 +98,7 @@ public class JwtProvider : IJwtProvider
             Token = newAccessToken,
             RefreshToken = newRaw, 
             User = user.ToDto(roles)
-        };
+        }; 
     }
     private string GenerateAccessToken(User user, IList<string> roles)
     {
@@ -127,5 +124,18 @@ public class JwtProvider : IJwtProvider
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    private async Task RevokeAllUserRefreshTokensAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var tokens = await _refreshTokenRepository.All
+            .Where(t => t.UserId == userId && !t.IsRevoked)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in tokens)
+            token.IsRevoked = true;
+
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        _logger.LogInformation("All refresh tokens revoked for user {UserId}", userId);
     }
 }

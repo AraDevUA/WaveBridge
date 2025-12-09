@@ -7,7 +7,7 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 {
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
-        builder.Property(x => x.Token)
+        builder.Property(x => x.TokenHash)
            .IsRequired()
            .HasMaxLength(256);
 

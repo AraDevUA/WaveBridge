@@ -1,12 +1,13 @@
 ﻿using API.Extensions;
-using Application.Dto.Request.Auth;
 using Application.Dto.Request.Users;
 using Application.Services.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
