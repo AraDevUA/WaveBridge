@@ -1,6 +1,6 @@
 ﻿namespace Domain.Enums;
 
-public enum StreamingServices
+public enum StreamingService
 {
     Spotify,
     AppleMusic,

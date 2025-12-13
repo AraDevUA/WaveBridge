@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
+using Infrastructure.Seeders;
 
 namespace Infrastructure.Extensions;
 
@@ -15,6 +16,7 @@ public static class InfrastructureServiceExtensions
     {
         services.AddScoped<SoftDeletableEntityInterceptor>();
         services.AddScoped<AuditableEntityInterceptor>();
+        services.AddScoped<AuthorizationSeeder>();
 
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {

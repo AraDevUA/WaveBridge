@@ -7,8 +7,8 @@ public class TransferOperation : IAuditableEntity, ISoftDeletableEntity
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
-    public StreamingServices SourceService { get; set; }
-    public StreamingServices TargetService { get; set; }
+    public StreamingService SourceService { get; set; }
+    public StreamingService TargetService { get; set; }
     public TransferStatus Status { get; set; }
 
     public DateTimeOffset? CreatedUtc { get; set; }

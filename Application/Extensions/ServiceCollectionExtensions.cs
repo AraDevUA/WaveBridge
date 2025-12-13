@@ -8,12 +8,13 @@ using Application.Services.Contracts;
 using Infrastructure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shared.Options;
 
 namespace Application.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IHostApplicationBuilder builder)
+    public static void AddApplicationServices(this IHostApplicationBuilder builder)
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
@@ -28,7 +29,9 @@ public static class ServiceCollectionExtensions
         #region helpers
         services.AddHttpClient<HttpClientHelper>();
         #endregion
-
+        services.AddOptions<AuthorizationOptions>()
+            .Bind(configuration.GetSection("AuthorizationOptions"));
+            
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection("JwtOptions"))
             .ValidateDataAnnotations()
@@ -45,6 +48,5 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddApplicationInfrastructure(configuration);
-        return services;
     }
 }
