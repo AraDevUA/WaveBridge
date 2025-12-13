@@ -9,9 +9,5 @@ public class AuditableEntityConfiguration<TEntity, TKey> : IEntityTypeConfigurat
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
         builder.HasKey(e => e.Id);
-
-        builder.Property(e => e.CreatedUtc)
-            .HasDefaultValueSql("timezone('utc', now())")
-            .ValueGeneratedOnAdd();
     }
 }
