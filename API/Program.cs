@@ -1,5 +1,6 @@
 using API.Extensions;
 using API.Middlewares;
+using API.Middlewares.Extensions;
 using Application.Dto.Jwt;
 using Application.Extensions;
 using Infrastructure.Seeders;
@@ -21,7 +22,33 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new()
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header
+    });
+
+    c.AddSecurityRequirement(new()
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new()
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.AddControllers();
 builder.AddApplicationServices();
@@ -53,8 +80,7 @@ app.UseHttpsRedirection();
 app.UseSession();
 
 app.UseAuthentication();
-//app.UseMiddleware<JwtValidationMiddleware>();
-//app.UseMiddleware<GoogleTokenRefreshMiddleware>();
+app.UseRefreshTokenMiddleware();
 app.UseAuthorization();
 
 app.MapControllers();

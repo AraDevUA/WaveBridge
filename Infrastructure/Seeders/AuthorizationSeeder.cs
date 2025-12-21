@@ -28,26 +28,23 @@ public sealed class AuthorizationSeeder
 
     public async Task SeedAsync()
     {
+            using var transaction = await _rolePermissionRepository.BeginTransactionAsync();
+
         await SeedRolesAsync();
         await SeedPermissionsAsync();
-        await SeedRolePermissionsAsync();
+        await SyncRolePermissionsAsync();
+
+        await transaction.CommitAsync();
     }
 
     private async Task SeedRolesAsync()
     {
         foreach (var roleOption in _options.RolePermissions)
         {
-            var existingRole = await _roleManager.FindByIdAsync(roleOption.Id.ToString());
-            if (existingRole != null)
-                continue;
+            var existingRole = await _roleManager.FindByNameAsync(roleOption.Name);
+            if (existingRole != null) continue;
 
-            var role = new Role
-            {
-                Id = roleOption.Id,
-                Name = roleOption.Name
-            };
-
-            await _roleManager.CreateAsync(role);
+            await _roleManager.CreateAsync(new Role { Name = roleOption.Name });
         }
     }
 
@@ -60,45 +57,54 @@ public sealed class AuthorizationSeeder
         foreach (var name in permissions)
         {
             var exists = await _permissionRepository.All.AnyAsync(p => p.Name == name);
-            if (exists) continue;
-
-            await _permissionRepository.CreateAsync(new Permission
+            if (!exists)
             {
-                Name = name
-            });
+                await _permissionRepository.CreateAsync(new Permission { Name = name });
+            }
         }
     }
 
-    private async Task SeedRolePermissionsAsync()
+    private async Task SyncRolePermissionsAsync()
     {
-        using var transaction = await _rolePermissionRepository.BeginTransactionAsync();
+        var rolePermissionsInDb = await _rolePermissionRepository.All
+            .Include(rp => rp.Role)
+            .Include(rp => rp.Permission)
+            .ToListAsync();
 
-        foreach (var roleOption in _options.RolePermissions)
+        var allRolePerms = _options.RolePermissions
+            .SelectMany(r => r.Permissions.Select(p => new { RoleName = r.Name, PermissionName = p }))
+            .ToList();
+
+        foreach (var rp in rolePermissionsInDb)
         {
-            foreach (var permName in roleOption.Permissions)
+            if (!allRolePerms.Any(x => x.RoleName == rp.Role.Name && x.PermissionName == rp.Permission.Name))
             {
-                var permission = await _permissionRepository.All
-                    .SingleOrDefaultAsync(p => p.Name == permName);
+                await _rolePermissionRepository.DeleteAsync(rp);
+            }
+        }
 
-                if (permission is null)
-                    continue; 
+        foreach (var rolePerm in allRolePerms)
+        {
+            var role = await _roleManager.FindByNameAsync(rolePerm.RoleName);
+            if (role is null) continue;
 
-                var exists = await _rolePermissionRepository.All
-                    .AnyAsync(rp => rp.RoleId == roleOption.Id && rp.PermissionId == permission.Id);
+            var permission = await _permissionRepository.All.SingleOrDefaultAsync(p => p.Name == rolePerm.PermissionName);
+            if (permission is null) continue;
 
-                if (exists)
-                    continue;
+            var exists = await _rolePermissionRepository.All
+                .AnyAsync(rp => rp.RoleId == role.Id && rp.PermissionId == permission.Id);
 
+            if (!exists)
+            {
                 await _rolePermissionRepository.AddAsync(new RolePermission
                 {
-                    RoleId = roleOption.Id,
+                    RoleId = role.Id,
                     PermissionId = permission.Id
                 });
             }
         }
 
         await _rolePermissionRepository.SaveChangesAsync();
-        await transaction.CommitAsync();
     }
-
 }
+

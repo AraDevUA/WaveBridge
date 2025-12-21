@@ -54,4 +54,12 @@ public static class UserDtoExtensions
             Roles = roles?.ToList() ?? new List<string>()
         };
     }
+    public static PageDto<UserResponseDto> ToPageDto(this IEnumerable<User> users, int totalCount, IEnumerable<string>? roles = null)
+    {
+        return new PageDto<UserResponseDto>
+        {
+            Items = users.Select(u => u.ToDto(roles)).ToList(),
+            TotalCount = totalCount
+        };
+    }
 }

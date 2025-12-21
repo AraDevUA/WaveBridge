@@ -29,7 +29,6 @@ public class JwtProvider : IJwtProvider
         _userManager = userManager;
         _logger = logger;
     }
-
     public async Task<AuthResponseDto> GenerateTokensAsync(User user, CancellationToken cancellationToken = default)
     {
         var roles = await _userManager.GetRolesAsync(user);

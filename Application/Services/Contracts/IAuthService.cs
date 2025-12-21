@@ -9,5 +9,5 @@ public interface IAuthService
 {
     Task<IServiceResult> RegisterAsync(RegisterRequestDto dto, CancellationToken cancellationToken = default);
     Task<IServiceResult> LoginAsync(LoginRequestDto dto, CancellationToken cancellationToken = default);
-    Task<IServiceResult> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken);
+    Task<IServiceResult> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
 }

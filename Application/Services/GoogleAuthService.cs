@@ -64,7 +64,7 @@ public class GoogleAuthService : IGoogleAuthService
 
         var tokenResult = await ExchangeCodeOnToken(code, codeVerifier, cancellationToken);
         var googleUser = await _httpClientHelper.SendGetRequestAsync<GoogleUserInfoResponseDto>(_googleOptions.Endpoints.UserInfoEndpoint, accessToken: tokenResult.AccessToken);
-
+        //TODO:Validation
         var user = await _userManager.FindByEmailAsync(googleUser.Email);
 
         if (user is null)

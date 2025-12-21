@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 [ApiController]
 [Route("[controller]")]
-[Authorize]
+[Authorize(Roles = "SuperAdmin, Admin")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -23,9 +23,9 @@ public class UsersController : ControllerBase
         return result.ToApiResult();
     }
     [HttpGet]
-    public async Task<IResult> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IResult> GetAllAsync([FromQuery] UserRequestDto dto, CancellationToken cancellationToken)
     {
-        var result = await _userService.GetAllAsync(cancellationToken);
+        var result = await _userService.GetAllAsync(dto, cancellationToken);
         return result.ToApiResult();
     }
     [HttpPut("{id}")]
@@ -35,11 +35,26 @@ public class UsersController : ControllerBase
         return result.ToApiResult();
     }
     [HttpDelete("{id}")]
+    [Authorize(Roles = "SuperAdmin")]
     public async Task<IResult> DeleteAsync([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var result = await _userService.DeleteAsync(id, cancellationToken);
         return result.ToApiResult();
     }
 
+    [HttpPost("{userId}/roles")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IResult> AssignRoleAsync([FromRoute] Guid userId, [FromBody] Guid roleId)
+    {
+        var result = await _userService.AssignRoleAsync(userId, roleId);
+        return result.ToApiResult();
+    }
+    [HttpGet("roles")]
+    [Authorize(Roles ="SuperAdmin")]
+    public async Task<IResult> GetRolesAsync()
+    {
+        var result = await _userService.GetRolesAsync();
+        return result.ToApiResult();
+    }
 
 }
