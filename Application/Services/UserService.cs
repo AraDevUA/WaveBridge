@@ -1,6 +1,7 @@
 ﻿using Application.Dto.DtoExtensions;
 using Application.Dto.Extensions;
 using Application.Dto.Request.Users;
+using Application.Extensions;
 using Application.Providers.Contracts;
 using Application.Results;
 using Application.Results.Interfaces;
@@ -22,7 +23,7 @@ namespace Application.Services
         public UserService(UserManager<User> userManager, IRepository<User, Guid> userRepository, IJwtProvider jwtProvider, RoleManager<Role> roleManager)
         {
             _userManager = userManager;
-            _userRepository=userRepository;
+            _userRepository = userRepository;
             _jwtProvider = jwtProvider;
             _roleManager = roleManager;
         }
@@ -32,8 +33,8 @@ namespace Application.Services
 
             if (user is null)
                 return ServiceResults.NotFound();
-
-            return ServiceResults.Ok(user);
+            
+            return ServiceResults.Ok(user.ToDto());
         }
         public async Task<IServiceResult> GetAllAsync(UserRequestDto dto, CancellationToken cancellationToken = default)
         {
@@ -43,11 +44,11 @@ namespace Application.Services
                 .WhereIf(!string.IsNullOrWhiteSpace(dto.Email), u => u.Email.Contains(dto.Email));
 
             var totalCount = await users.CountAsync(cancellationToken);
-
+            
             var result = await users
                 .Paginate(dto.Page, dto.PageSize)
                 .ToListAsync(cancellationToken);
-
+            
             return ServiceResults.Ok(result.ToPageDto(totalCount));
         }
 
@@ -63,9 +64,7 @@ namespace Application.Services
             var result = await _userManager.UpdateAsync(user);
 
             if (!result.Succeeded)
-                return ServiceResults.BadRequest(
-                    string.Join("; ", result.Errors.Select(e => e.Description))
-                );
+                return ServiceResults.Failed(result.Errors.ToValidationErrors());
 
             var roles = await _userManager.GetRolesAsync(user);
             return ServiceResults.Ok(user.ToDto(roles));
@@ -76,6 +75,7 @@ namespace Application.Services
 
             if (user is null)
                 return ServiceResults.NotFound();
+
             await _userRepository.DeleteAsync(user);
 
             return ServiceResults.NoContent();
@@ -92,10 +92,9 @@ namespace Application.Services
             if (role is null)
                 return ServiceResults.NotFound();
 
-            //TODO: Improve error handling 
             var result = await _userManager.AddToRoleAsync(user, role.Name);
             if (!result.Succeeded)
-                return ServiceResults.Failed(string.Join("; ", result.Errors.Select(e => e.Description)));
+                return ServiceResults.Failed(result.Errors.ToValidationErrors());
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -106,6 +105,7 @@ namespace Application.Services
             var roles = _roleManager.Roles
                 .Select(r => new { r.Id, r.Name, r.CreatedUtc })
                 .ToList();
+
             if(roles is null)
                 return ServiceResults.NotFound();
 

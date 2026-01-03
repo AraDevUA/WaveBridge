@@ -16,7 +16,7 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    [HttpGet("{Id}")]
+    [HttpGet("{id}")]
     public async Task<IResult> GetByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var result = await _userService.GetByIdAsync(id, cancellationToken);

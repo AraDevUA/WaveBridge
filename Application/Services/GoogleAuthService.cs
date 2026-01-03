@@ -2,11 +2,13 @@
 using Application.Dto.Options;
 using Application.Dto.Response.Auth;
 using Application.Helpers;
+using Application.Localization;
 using Application.Providers.Contracts;
 using Application.Results;
 using Application.Results.Interfaces;
 using Application.Services.Contracts;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -64,7 +66,7 @@ public class GoogleAuthService : IGoogleAuthService
 
         var tokenResult = await ExchangeCodeOnToken(code, codeVerifier, cancellationToken);
         var googleUser = await _httpClientHelper.SendGetRequestAsync<GoogleUserInfoResponseDto>(_googleOptions.Endpoints.UserInfoEndpoint, accessToken: tokenResult.AccessToken);
-        //TODO:Validation
+        
         var user = await _userManager.FindByEmailAsync(googleUser.Email);
 
         if (user is null)
@@ -72,7 +74,7 @@ public class GoogleAuthService : IGoogleAuthService
             user = googleUser.ToUserEntity();
             var createResult = await _userManager.CreateAsync(user);
             if (!createResult.Succeeded)
-                return ServiceResults.Failed("Failed to create user.");
+                return ServiceResults.Failed(SystemMessages.InternalServerError);
         }
 
         await UpsertGoogleConnectionAsync(user, googleUser, tokenResult, cancellationToken);

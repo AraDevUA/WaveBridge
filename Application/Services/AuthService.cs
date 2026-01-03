@@ -9,7 +9,8 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-
+using Domain.Enums;
+using Application.Localization;
 namespace Application.Services;
 
 public class AuthService : IAuthService
@@ -39,12 +40,8 @@ public class AuthService : IAuthService
         var result = await _userManager.CreateAsync(user, dto.Password);
 
         if (!result.Succeeded)
-        {
-            //TODO: improve error handling
-            var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
-            return ServiceResults.BadRequest(errors);
-        }
-
+            return ServiceResults.Failed(SystemMessages.InternalServerError);
+        
         return ServiceResults.Ok(user.ToDto());
     }
     public async Task<IServiceResult> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default)

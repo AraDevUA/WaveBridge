@@ -1,13 +1,9 @@
 using API.Extensions;
-using API.Middlewares;
 using API.Middlewares.Extensions;
-using Application.Dto.Jwt;
 using Application.Extensions;
 using Infrastructure.Seeders;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +15,7 @@ builder.Services.AddSession(options =>
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
     });
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -69,17 +66,30 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
-if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
+
 }
 
+var supportedCultures = new[]
+    {
+        new CultureInfo("en-US"),
+        new CultureInfo("ru-RU"),
+        new CultureInfo("uk-UA")
+    };
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en-US"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures,
+    RequestCultureProviders = [new AcceptLanguageHeaderRequestCultureProvider()]
+});
 
 app.UseHttpsRedirection();
 app.UseSession();
 
 app.UseAuthentication();
+app.UseExceptionHandlingMiddleware();
 app.UseRefreshTokenMiddleware();
 app.UseAuthorization();
 

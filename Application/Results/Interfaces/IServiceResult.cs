@@ -8,5 +8,6 @@ public interface IServiceResult
     ServiceResultType Type { get; }
     object? Data { get; }
     string? ErrorMessage { get; }
+    IDictionary<string, string[]>? ValidationErrors { get; }
 }
 
