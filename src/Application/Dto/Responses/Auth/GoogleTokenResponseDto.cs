@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Application.Dto.Response.Auth;
+namespace Application.Dto.Responses.Auth;
 
 public record GoogleTokenResponseDto
 {

@@ -7,15 +7,12 @@ public class UserStreamingConnectionConfiguration : IEntityTypeConfiguration<Use
 {
     public void Configure(EntityTypeBuilder<UserStreamingConnection> builder)
     {
-        builder.HasOne<User>()
+        builder.HasOne(c => c.User)
             .WithMany()
             .HasForeignKey(u => u.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(c => c.Service)
-            .IsRequired();
-
-        builder.Property(c => c.ExternalUserId)
             .IsRequired();
 
         builder.Property(c => c.AccessToken)

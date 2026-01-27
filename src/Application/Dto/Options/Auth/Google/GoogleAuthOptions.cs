@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Application.Dto.Options;
+namespace Application.Dto.Options.Auth.Google;
 
 public record GoogleAuthOptions
 {
@@ -11,7 +11,9 @@ public record GoogleAuthOptions
     [Required]
     public string CallbackUri { get; init; }
     [Required]
-    public ScopesOptions Scopes { get; init; }
+    public string YoutubeMusicCallbackUri { get; init; }
     [Required]
-    public EndpointsOptions Endpoints { get; init; }
+    public GoogleScopesOptions Scopes { get; init; }
+    [Required]
+    public GoogleEndpointsOptions Endpoints { get; init; }
 }

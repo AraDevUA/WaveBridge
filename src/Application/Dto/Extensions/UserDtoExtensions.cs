@@ -1,7 +1,8 @@
 ﻿using Application.Dto.Request.Auth;
 using Application.Dto.Request.Users;
-using Application.Dto.Response.Auth;
 using Application.Dto.Response.Users;
+using Application.Dto.Responses.Auth;
+using Application.Dto.Responses.Auth.Google;
 using Domain.Entities;
 using Domain.Enums;
 

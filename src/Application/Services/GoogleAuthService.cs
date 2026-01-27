@@ -1,6 +1,8 @@
 ﻿using Application.Dto.DtoExtensions;
 using Application.Dto.Options;
-using Application.Dto.Response.Auth;
+using Application.Dto.Options.Auth.Google;
+using Application.Dto.Responses.Auth;
+using Application.Dto.Responses.Auth.Google;
 using Application.Helpers;
 using Application.Localization;
 using Application.Providers.Contracts;

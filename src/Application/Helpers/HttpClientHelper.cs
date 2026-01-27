@@ -21,24 +21,24 @@ public class HttpClientHelper
         _logger = logger;
     }
 
-    public async Task<T> SendGetRequestAsync<T>(string endpoint, Dictionary<string, string>? queryParams = null, string? accessToken = null, CancellationToken cancellationToken = default)
+    public async Task<T> SendGetRequestAsync<T>(string endpoint, Dictionary<string, string>? queryParams = null, string? accessToken = null, bool throwOnError = false, CancellationToken cancellationToken = default)
     {
-        return await SendHttpRequestAsync<T>(HttpMethod.Get, endpoint, accessToken, queryParams, null, cancellationToken);
+        return await SendHttpRequestAsync<T>(HttpMethod.Get, endpoint, accessToken, queryParams, null, throwOnError, cancellationToken);
     }
 
-    public async Task<T> SendPostFormRequestAsync<T>(string endpoint, Dictionary<string, string>? formParams = null, string? accessToken = null, CancellationToken cancellationToken = default)
+    public async Task<T> SendPostFormRequestAsync<T>(string endpoint, Dictionary<string, string>? formParams = null, string? accessToken = null, bool throwOnError = false, CancellationToken cancellationToken = default)
     {
         var httpContent = formParams != null ? new FormUrlEncodedContent(formParams) : null;
 
-        return await SendHttpRequestAsync<T>(HttpMethod.Post, endpoint, accessToken, null, httpContent, cancellationToken);
+        return await SendHttpRequestAsync<T>(HttpMethod.Post, endpoint, accessToken, null, httpContent, throwOnError, cancellationToken);
     }
 
-    public async Task<T> SendPostJsonRequestAsync<T>(string endpoint, object body, string? accessToken = null, CancellationToken cancellationToken = default)
+    public async Task<T> SendPostJsonRequestAsync<T>(string endpoint, object body, string? accessToken = null, bool throwOnError = false, CancellationToken cancellationToken = default)
     {
         var json = JsonSerializer.Serialize(body, _jsonOptions);
         var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-        return await SendHttpRequestAsync<T>(HttpMethod.Post, endpoint, accessToken, null, httpContent, cancellationToken);
+        return await SendHttpRequestAsync<T>(HttpMethod.Post, endpoint, accessToken, null, httpContent, throwOnError, cancellationToken);
     }
 
     private async Task<T> SendHttpRequestAsync<T>(
@@ -47,6 +47,7 @@ public class HttpClientHelper
         string? accessToken = null,
         Dictionary<string, string>? queryParams = null,
         HttpContent? httpContent = null,
+        bool throwOnError = false,
         CancellationToken cancellationToken = default)
     {
         var url = queryParams != null
@@ -54,6 +55,8 @@ public class HttpClientHelper
             : endpoint;
 
         using var request = new HttpRequestMessage(httpMethod, url);
+
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         if (!string.IsNullOrWhiteSpace(accessToken))
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -68,6 +71,9 @@ public class HttpClientHelper
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("HTTP request failed. StatusCode: {StatusCode}, URL: {Url}, Response: {Response}", response.StatusCode, url, responseContent);
+
+            if (throwOnError)
+                throw new HttpRequestException($"Request to {url} failed with status {(int)response.StatusCode}: {responseContent}");
         }
 
         if (string.IsNullOrWhiteSpace(responseContent))

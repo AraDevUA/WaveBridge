@@ -1,4 +1,4 @@
-﻿namespace Application.Dto.Response.Auth;
+﻿namespace Application.Dto.Responses.Auth.Google;
 
 public record GoogleUserInfoResponseDto
 {

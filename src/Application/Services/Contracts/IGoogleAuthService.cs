@@ -1,4 +1,4 @@
-﻿using Application.Dto.Response.Auth;
+﻿using Application.Dto.Responses.Auth;
 using Application.Results.Interfaces;
 using Domain.Entities;
 

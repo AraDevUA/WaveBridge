@@ -1,6 +1,6 @@
-﻿namespace Application.Dto.Options;
+﻿namespace Application.Dto.Options.Auth.Google;
 
-public record EndpointsOptions
+public record GoogleEndpointsOptions
 {
     public string UserInfoEndpoint { get; init; }
     public string OAuthServerEndpoint { get; init; }
