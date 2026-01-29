@@ -1,6 +1,7 @@
 ﻿using Application.Dto.Options.Auth.Spotify;
 using Application.Dto.Responses.Auth;
 using Application.Helpers;
+using Application.Helpers.Contracts;
 using Application.Strateges.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -8,9 +9,9 @@ namespace Application.Strateges.Auth;
 
 public class SpotifyAuthStrategy : IStreamingAuthStrategy
 {
-    private readonly HttpClientHelper _httpClientHelper;
+    private readonly IHttpClientHelper _httpClientHelper;
     private readonly SpotifyAuthOptions _options;
-    public SpotifyAuthStrategy(IOptions<SpotifyAuthOptions> options, HttpClientHelper httpClientHelper)
+    public SpotifyAuthStrategy(IOptions<SpotifyAuthOptions> options, IHttpClientHelper httpClientHelper)
     {
         _options = options.Value;
         _httpClientHelper = httpClientHelper;

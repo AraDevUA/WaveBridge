@@ -3,6 +3,7 @@ using Application.Dto.Options;
 using Application.Dto.Options.Auth.Google;
 using Application.Dto.Options.Auth.Spotify;
 using Application.Helpers;
+using Application.Helpers.Contracts;
 using Application.Providers;
 using Application.Providers.Contracts;
 using Application.Services;
@@ -36,10 +37,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SpotifyStrategy>();
         services.AddScoped<SpotifyAuthStrategy>();
         services.AddScoped<YouTubeMusicAuthStrategy>();
-        
+
         #endregion
         #region helpers
-        services.AddHttpClient<HttpClientHelper>();
+        services.AddHttpClient<IHttpClientHelper, HttpClientHelper>();
         #endregion
         services.AddScoped<IStreamingFacade, StreamingFacade>();
         services.AddScoped<IStreamingStrategyFactory, StreamingStrategyFactory>();

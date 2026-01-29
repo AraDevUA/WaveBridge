@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
+﻿using Application.Helpers.Contracts;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Text.Json;
 
 namespace Application.Helpers;
 
-public class HttpClientHelper
+public class HttpClientHelper : IHttpClientHelper
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HttpClientHelper> _logger;

@@ -4,6 +4,7 @@ using Application.Dto.Options.Auth.Google;
 using Application.Dto.Responses.Auth;
 using Application.Dto.Responses.Auth.Google;
 using Application.Helpers;
+using Application.Helpers.Contracts;
 using Application.Localization;
 using Application.Providers.Contracts;
 using Application.Results;
@@ -25,7 +26,7 @@ public class GoogleAuthService : IGoogleAuthService
     private readonly GoogleAuthOptions _googleOptions;
     private readonly EncryptionOptions _encryptionOptions;
     private readonly IHttpContextAccessor _httpContext;
-    private readonly HttpClientHelper _httpClientHelper;
+    private readonly IHttpClientHelper _httpClientHelper;
     private readonly IRepository<UserOAuthConnection, Guid> _userOAuthConnectionRepository;
     private readonly UserManager<User> _userManager;
     private readonly IJwtProvider _jwtProvider;
@@ -33,7 +34,7 @@ public class GoogleAuthService : IGoogleAuthService
             IOptions<GoogleAuthOptions> googleOptions,
             IOptions<EncryptionOptions> encryptionOptions,
             IHttpContextAccessor httpContext,
-            HttpClientHelper httpClientHelper,
+            IHttpClientHelper httpClientHelper,
             IRepository<UserOAuthConnection, Guid> userOAuthConnectionRepository,
             UserManager<User> userManager,
             IJwtProvider jwtProvider)

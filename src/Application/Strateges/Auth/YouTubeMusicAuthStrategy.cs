@@ -1,6 +1,7 @@
 ﻿using Application.Dto.Options.Auth.Google;
 using Application.Dto.Responses.Auth;
 using Application.Helpers;
+using Application.Helpers.Contracts;
 using Application.Strateges.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -8,10 +9,10 @@ namespace Application.Strateges.Auth;
 
 public class YouTubeMusicAuthStrategy : IStreamingAuthStrategy
 {
-    private readonly HttpClientHelper _httpClientHelper;
+    private readonly IHttpClientHelper _httpClientHelper;
     private readonly GoogleAuthOptions _options;
 
-    public YouTubeMusicAuthStrategy(IOptions<GoogleAuthOptions> options, HttpClientHelper httpClientHelper)
+    public YouTubeMusicAuthStrategy(IOptions<GoogleAuthOptions> options, IHttpClientHelper httpClientHelper)
     {
         _options = options.Value;
         _httpClientHelper = httpClientHelper;

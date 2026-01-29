@@ -3,6 +3,7 @@ using Application.Dto.Requests.Transfers;
 using Application.Dto.Streaming;
 using Application.Dto.Streaming.Responses.Spotify;
 using Application.Helpers;
+using Application.Helpers.Contracts;
 using Application.Strateges.Abstractions;
 
 namespace Application.Strateges;
@@ -11,8 +12,8 @@ public class SpotifyStrategy : IStreamingStrategy
 {
     private const string BaseUrl = "https://api.spotify.com/v1/";
 
-    private readonly HttpClientHelper _httpClientHelper;
-    public SpotifyStrategy(HttpClientHelper httpClientHelper)
+    private readonly IHttpClientHelper _httpClientHelper;
+    public SpotifyStrategy(IHttpClientHelper httpClientHelper)
     {
         _httpClientHelper = httpClientHelper;
     }
