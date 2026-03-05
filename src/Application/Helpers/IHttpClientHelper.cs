@@ -41,7 +41,12 @@ public class HttpClientHelper : IHttpClientHelper
 
         return await SendHttpRequestAsync<T>(HttpMethod.Post, endpoint, accessToken, null, httpContent, throwOnError, cancellationToken);
     }
-
+    public async Task<T> SendPutJsonRequestAsync<T>(string endpoint, object body, bool throwOnError = false, CancellationToken cancellationToken = default)
+    {
+        var json = JsonSerializer.Serialize(body, _jsonOptions);
+        var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+        return await SendHttpRequestAsync<T>(HttpMethod.Put, endpoint, null, null, httpContent, throwOnError, cancellationToken);
+    }
     private async Task<T> SendHttpRequestAsync<T>(
         HttpMethod httpMethod,
         string endpoint,

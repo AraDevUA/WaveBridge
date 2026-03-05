@@ -15,6 +15,8 @@ using Infrastructure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Shared.Options;
+using FluentValidation;
+using Application.Dto.Options.Auth.SoundCloud;
 
 namespace Application.Extensions;
 
@@ -24,6 +26,9 @@ public static class ServiceCollectionExtensions
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
+
+        services.AddValidatorsFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+
         #region services
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -37,6 +42,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SpotifyStrategy>();
         services.AddScoped<SpotifyAuthStrategy>();
         services.AddScoped<YouTubeMusicAuthStrategy>();
+        services.AddScoped<SoundCloudAuthStrategy>();
+        services.AddScoped<SoundCloudStrategy>();
 
         #endregion
         #region helpers
@@ -69,6 +76,11 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<SpotifyAuthOptions>()
             .Bind(configuration.GetSection("OAuth:Spotify"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<SoundCloudAuthOptions>()
+            .Bind(configuration.GetSection("OAuth:SoundCloud"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

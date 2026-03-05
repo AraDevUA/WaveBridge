@@ -20,7 +20,7 @@ public class StreamingAuthController : ControllerBase
     }
 
     [HttpGet("{service}/url")]
-
+    [Authorize]
     public async Task<IResult> GetAuthUrl(StreamingService service)
     {
         var userId = User.GetUserId();

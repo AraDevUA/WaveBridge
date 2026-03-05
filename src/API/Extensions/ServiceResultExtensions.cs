@@ -16,7 +16,7 @@ public static class ServiceResultExtensions
             ServiceResultType.Unauthorized => Results.Unauthorized(),
             ServiceResultType.Forbidden => Results.Forbid(),
             ServiceResultType.NotFound => Results.NotFound(),
-            ServiceResultType.Conflict => Results.Conflict(result.ValidationErrors),
+            ServiceResultType.Conflict => Results.Conflict(result.ErrorMessage),
             ServiceResultType.ValidationFailed => Results.BadRequest(result.ValidationErrors),
             ServiceResultType.CriticalError => Results.StatusCode(StatusCodes.Status500InternalServerError),
             _ => Results.StatusCode(StatusCodes.Status500InternalServerError),

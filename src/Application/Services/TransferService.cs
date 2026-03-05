@@ -5,6 +5,7 @@ using Application.Results.Interfaces;
 using Application.Services.Contracts;
 using Application.Strateges.Abstractions;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,21 +42,49 @@ public class TransferService : ITransferService
 
         var destinationPlaylistId = await _streamingFacade.CreatePlaylistAsync(dto.Destination, playlistInfo.Name, destinationToken, _waveBridgeDescription, dto.isPublic);
 
+        var failedTracks = new List<TrackSearchDto>();
+
         foreach (var track in sourceTracks)
         {
-            var trackId = await _streamingFacade.SearchForTrackAsync(dto.Destination, new TrackSearchDto
-            {
-                Name = track.TrackName,
-                Artist = track.Artist,
-                Album = track.Album
-            }, destinationToken);
-
+            var trackId = await FindTrackIdWithFallbackAsync(track, dto.Destination, destinationToken);
             if (trackId is null)
+            {
+                failedTracks.Add(new TrackSearchDto
+                {
+                    Name = track.TrackName,
+                    Artist = track.Artist,
+                    Album = track.Album
+                });
                 continue;
+            }
 
             await _streamingFacade.AddTrackToPlaylistAsync(dto.Destination, destinationPlaylistId, trackId, destinationToken);
         }
 
-        return ServiceResults.Ok(destinationPlaylistId);
+        return ServiceResults.Ok(new
+        {
+            destinationPlaylistId,
+            FailedTracks = failedTracks
+        });
+    }
+    private async Task<string?> FindTrackIdWithFallbackAsync(SourceTrackDto track, StreamingService service, string accessToken)
+    {
+        // main
+        var trackId = await _streamingFacade.SearchForTrackAsync(service, new TrackSearchDto
+        {
+            Name = track.TrackName,
+            Artist = track.Artist,
+            Album = track.Album
+        }, accessToken);
+
+        if (trackId != null)
+            return trackId;
+
+        // fallback
+        return await _streamingFacade.SearchForTrackAsync(service, new TrackSearchDto
+        {
+            Name = track.TrackName,
+            Album = track.Album
+        }, accessToken);
     }
 }

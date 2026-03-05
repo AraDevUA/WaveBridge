@@ -5,6 +5,7 @@ using Application.Dto.Streaming.Responses.Spotify;
 using Application.Helpers;
 using Application.Helpers.Contracts;
 using Application.Strateges.Abstractions;
+using System.Text.RegularExpressions;
 
 namespace Application.Strateges;
 
@@ -55,15 +56,19 @@ public class SpotifyStrategy : IStreamingStrategy
     }
     public async Task<string?> SearchForTrackAsync(TrackSearchDto track, string accessToken)
     {
-        var query = $"track:{track.Name} artist:{track.Artist}";
+        //TODO: Improve search query construction, maybe use Spotify's advanced search syntax more effectivelyp
+        var query = $"track:{track.Name}";
+        if (!string.IsNullOrWhiteSpace(track.Artist))
+            query += $" artist:{track.Artist}";
         if (!string.IsNullOrWhiteSpace(track.Album))
             query += $" album:{track.Album}";
 
-        var endpoint = $"{BaseUrl}search?q={Uri.EscapeDataString(query)}&type=track&limit=1";
+        var endpoint = $"{BaseUrl}search?q={Uri.EscapeDataString(query)}&type=track&limit=5";
 
-        var response = await _httpClientHelper.SendGetRequestAsync<SpotifySearchResponseDto>(endpoint, accessToken: accessToken, throwOnError: true);
+        var response = await _httpClientHelper.SendGetRequestAsync<SpotifySearchResponseDto>(
+            endpoint, accessToken: accessToken, throwOnError: true);
 
-        var resultTrack = response.Tracks.Items.FirstOrDefault();
+        var resultTrack = response.Tracks.Items.FirstOrDefault(t => !string.IsNullOrWhiteSpace(t.Id));
         return resultTrack?.Id;
     }
     public async Task AddTrackToPlaylistAsync(string playlistId, string trackId, string accessToken)
@@ -106,5 +111,5 @@ public class SpotifyStrategy : IStreamingStrategy
             Description = response.Description
         };
     }
-
+    
 }
