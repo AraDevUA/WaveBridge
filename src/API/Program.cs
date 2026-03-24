@@ -1,7 +1,9 @@
 using API.Extensions;
 using API.Middlewares.Extensions;
 using Application.Extensions;
+using Infrastructure;
 using Infrastructure.Seeders;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 
@@ -58,6 +60,9 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+
     var seeder = scope.ServiceProvider.GetRequiredService<AuthorizationSeeder>();
     await seeder.SeedAsync();
 }
@@ -74,7 +79,8 @@ var supportedCultures = new[]
     {
         new CultureInfo("en-US"),
         new CultureInfo("ru-RU"),
-        new CultureInfo("uk-UA")
+        new CultureInfo("uk-UA"),
+        new CultureInfo("de-DE")
     };
 
 app.UseRequestLocalization(new RequestLocalizationOptions
@@ -85,7 +91,12 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     RequestCultureProviders = [new AcceptLanguageHeaderRequestCultureProvider()]
 });
 
-app.UseHttpsRedirection();
+var enableHttpsRedirection = app.Configuration.GetValue("EnableHttpsRedirection", !app.Environment.IsDevelopment());
+
+if (enableHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
 app.UseSession();
 
 app.UseAuthentication();

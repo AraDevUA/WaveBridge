@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: wavebridge-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-waveBridge.main}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-waveBridge.main}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    image: wavebridge-api
+    container_name: wavebridge-api
+    build:
+      context: .
+      dockerfile: src/API/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_HTTP_PORTS: 8080
+      EnableHttpsRedirection: "false"
+      ConnectionStrings__WaveBridge: Host=postgres;Port=5432;Database=${POSTGRES_DB:-waveBridge.main};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      JwtOptions__Key: ${JWT_KEY:-dev-only-jwt-key-change-me}
+      JwtOptions__Issuer: ${JWT_ISSUER:-WaveBridgeAPI}
+      JwtOptions__Audience: ${JWT_AUDIENCE:-WaveBridgeClient}
+      Encryption__KeyBase64: ${ENCRYPTION_KEY_BASE64:-}
+      OAuth__SoundCloud__ClientId: ${SOUNDCLOUD_CLIENT_ID:-your_soundcloud_client_id}
+      OAuth__SoundCloud__ClientSecret: ${SOUNDCLOUD_CLIENT_SECRET:-your_soundcloud_client_secret}
+      OAuth__Spotify__ClientId: ${SPOTIFY_CLIENT_ID:-your_spotify_client_id}
+      OAuth__Spotify__ClientSecret: ${SPOTIFY_CLIENT_SECRET:-your_spotify_client_secret}
+      OAuth__Google__ClientId: ${GOOGLE_CLIENT_ID:-your_google_client_id}
+      OAuth__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-your_google_client_secret}
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+volumes:
+  postgres-data:
