@@ -18,13 +18,8 @@ services:
       start_period: 10s
 
   api:
-    image: wavebridge-api
+    image: aradevua/wavebridge-repo:${WAVEBRIDGE_IMAGE_TAG:-latest}
     container_name: wavebridge-api
-    build:
-      context: .
-      dockerfile: src/API/Dockerfile
-      args:
-        BUILD_CONFIGURATION: Release
     depends_on:
       postgres:
         condition: service_healthy
