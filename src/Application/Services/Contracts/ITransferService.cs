@@ -1,5 +1,6 @@
 ﻿using Application.Dto.Request.Transfers;
 using Application.Results.Interfaces;
+using Shared.Enums;
 
 namespace Application.Services.Contracts;
 

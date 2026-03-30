@@ -1,8 +1,8 @@
-﻿using Application.Results;
+using Application.Results;
 using Application.Results.Interfaces;
 using Application.Services.Contracts;
 using Application.Strateges.Abstractions;
-using Domain.Enums;
+using Shared.Enums;
 
 namespace Application.Services;
 

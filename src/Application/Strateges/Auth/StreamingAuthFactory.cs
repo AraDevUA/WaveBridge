@@ -1,5 +1,5 @@
-﻿using Application.Strateges.Abstractions;
-using Domain.Enums;
+using Application.Strateges.Abstractions;
+using Shared.Enums;
 
 namespace Application.Strateges.Auth;
 

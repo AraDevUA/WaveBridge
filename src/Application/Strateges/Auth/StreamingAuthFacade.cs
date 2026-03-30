@@ -1,7 +1,7 @@
-﻿using Application.Providers.Contracts;
+using Application.Providers.Contracts;
 using Application.Strateges.Abstractions;
 using Domain.Entities;
-using Domain.Enums;
+using Shared.Enums;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,4 @@
-﻿using Application.Dto.DtoExtensions;
+using Application.Dto.DtoExtensions;
 using Application.Dto.Jwt;
 using Application.Dto.Request.Auth;
 using Application.Providers.Contracts;
@@ -9,7 +9,7 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using Domain.Enums;
+using Shared.Enums;
 using Application.Localization;
 namespace Application.Services;
 

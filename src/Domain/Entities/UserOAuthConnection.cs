@@ -1,5 +1,5 @@
-﻿using Domain.Entities.Interfaces;
-using Domain.Enums;
+using Domain.Entities.Interfaces;
+using Shared.Enums;
 
 namespace Domain.Entities;
 

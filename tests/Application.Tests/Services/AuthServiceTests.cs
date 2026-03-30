@@ -1,4 +1,4 @@
-﻿using Application.Dto.DtoExtensions;
+using Application.Dto.DtoExtensions;
 using Application.Dto.Jwt;
 using Application.Dto.Request.Auth;
 using Application.Dto.Response.Auth;
@@ -6,7 +6,7 @@ using Application.Dto.Response.Users;
 using Application.Providers.Contracts;
 using Application.Services;
 using Domain.Entities;
-using Domain.Enums;
+using Shared.Enums;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;

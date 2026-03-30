@@ -2,7 +2,7 @@
 using Application.Dto.Requests.Transfers;
 using Application.Dto.Streaming;
 using Domain.Entities;
-using Domain.Enums;
+using Shared.Enums;
 
 namespace Application.Strateges.Abstractions;
 

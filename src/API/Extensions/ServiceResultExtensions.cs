@@ -1,5 +1,5 @@
-﻿using Application.Results.Interfaces;
-using Domain.Enums;
+using Application.Results.Interfaces;
+using Shared.Enums;
 
 namespace API.Extensions;
 

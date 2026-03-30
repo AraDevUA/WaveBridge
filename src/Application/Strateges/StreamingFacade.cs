@@ -3,7 +3,7 @@ using Application.Dto.Requests.Transfers;
 using Application.Dto.Streaming;
 using Application.Strateges.Abstractions;
 using Domain.Entities;
-using Domain.Enums;
+using Shared.Enums;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
 

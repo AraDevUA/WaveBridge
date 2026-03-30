@@ -1,7 +1,7 @@
-﻿using API.Extensions;
+using API.Extensions;
 using Application.Dto.Requests.StreamingAuth;
 using Application.Services.Contracts;
-using Domain.Enums;
+using Shared.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

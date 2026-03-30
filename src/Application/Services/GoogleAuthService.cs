@@ -1,4 +1,4 @@
-﻿using Application.Dto.DtoExtensions;
+using Application.Dto.DtoExtensions;
 using Application.Dto.Options;
 using Application.Dto.Options.Auth.Google;
 using Application.Dto.Responses.Auth;
@@ -11,7 +11,7 @@ using Application.Results;
 using Application.Results.Interfaces;
 using Application.Services.Contracts;
 using Domain.Entities;
-using Domain.Enums;
+using Shared.Enums;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

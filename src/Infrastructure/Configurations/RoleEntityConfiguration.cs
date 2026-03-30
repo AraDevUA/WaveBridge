@@ -1,4 +1,4 @@
-﻿using Domain.Enums;
+using Shared.Enums;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Domain.Entities.Configurations;
