@@ -17,6 +17,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<SoftDeletableEntityInterceptor>();
         services.AddScoped<AuditableEntityInterceptor>();
         services.AddScoped<AuthorizationSeeder>();
+        services.AddScoped<AdminUserSeeder>();
 
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {

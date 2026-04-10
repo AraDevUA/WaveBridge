@@ -10,9 +10,20 @@ public class TransferOperationConfiguration : IEntityTypeConfiguration<Entities.
         builder.Property(t => t.Status)
             .IsRequired();
 
+        builder.Property(t => t.MergedTargetPlaylistId)
+            .HasMaxLength(200);
+
+        builder.Property(t => t.MergedTargetPlaylistUrl)
+            .HasMaxLength(500);
+
         builder.HasOne(t => t.User)
             .WithMany()
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(t => t.TransferPlaylists)
+            .WithOne(t => t.TransferOperation)
+            .HasForeignKey(t => t.TransferOperationId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

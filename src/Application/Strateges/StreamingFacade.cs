@@ -1,4 +1,4 @@
-﻿using Application.Dto;
+using Application.Dto;
 using Application.Dto.Requests.Transfers;
 using Application.Dto.Streaming;
 using Application.Strateges.Abstractions;
@@ -48,6 +48,12 @@ public class StreamingFacade : IStreamingFacade
         return await strategy.GetLikedTracksAsync(pagedRequest, accessToken);
     }
 
+    public async Task<PageDto<SourcePlaylistDto>> GetPlaylistsAsync(StreamingService platform, PagedRequest pagedRequest, string accessToken)
+    {
+        var strategy = _factory.GetStrategy(platform);
+        return await strategy.GetPlaylistsAsync(pagedRequest, accessToken);
+    }
+
     public async Task<SourcePlaylistDto> GetPlaylistInfoAsync(StreamingService platform, string playlistId, string accessToken)
     {
         var strategy = _factory.GetStrategy(platform);
@@ -66,7 +72,7 @@ public class StreamingFacade : IStreamingFacade
         return await strategy.SearchForTrackAsync(track, accessToken);
     }
 
-    public async Task<string> CreatePlaylistAsync(StreamingService platform, string name, string accessToken, string? description = null, bool isPublic = false)
+    public async Task<SourcePlaylistDto> CreatePlaylistAsync(StreamingService platform, string name, string accessToken, string? description = null, bool isPublic = false)
     {
         var strategy = _factory.GetStrategy(platform);
         return await strategy.CreatePlaylistAsync(name, accessToken, description, isPublic);

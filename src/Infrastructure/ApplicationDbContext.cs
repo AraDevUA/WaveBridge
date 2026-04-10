@@ -16,6 +16,9 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<UserOAuthConnection> UserOAuthConnections { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
+    public DbSet<TransferOperation> TransferOperations { get; set; }
+    public DbSet<TransferPlaylist> TransferPlaylists { get; set; }
+    public DbSet<TransferTrack> TransferTracks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -1,6 +1,6 @@
 namespace Shared.Enums;
 
-public enum TransferItemStatus
+public enum TransferTrackStatus
 {
     Pending,
     Transferred,

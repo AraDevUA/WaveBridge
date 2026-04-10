@@ -129,4 +129,25 @@
   <data name="PasswordTooWeak" xml:space="preserve">
     <value>Пароль не соответствует требованиям безопасности.</value>
   </data>
+  <data name="UserNotConnected" xml:space="preserve">
+    <value>Пользователь не подключен к {0}.</value>
+  </data>
+  <data name="AtLeastOnePlaylistRequired" xml:space="preserve">
+    <value>Нужно выбрать хотя бы один плейлист с треками.</value>
+  </data>
+  <data name="SelectedPlaylistsContainNoTracks" xml:space="preserve">
+    <value>Выбранные плейлисты не содержат треков.</value>
+  </data>
+  <data name="DestinationPlaylistWasNotCreated" xml:space="preserve">
+    <value>Целевой плейлист не был создан.</value>
+  </data>
+  <data name="TrackWasNotFoundOnDestinationPlatform" xml:space="preserve">
+    <value>Трек не найден на целевой платформе.</value>
+  </data>
+  <data name="TransferCreationFailed" xml:space="preserve">
+    <value>Не удалось создать трансфер.</value>
+  </data>
+  <data name="TransferExecutionFailed" xml:space="preserve">
+    <value>Не удалось выполнить трансфер.</value>
+  </data>
 </root>

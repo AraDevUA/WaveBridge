@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -128,5 +128,26 @@
   </data>
   <data name="PasswordTooWeak" xml:space="preserve">
     <value>Das Passwort erfuellt die Sicherheitsanforderungen nicht.</value>
+  </data>
+  <data name="UserNotConnected" xml:space="preserve">
+    <value>Der Benutzer ist nicht mit {0} verbunden.</value>
+  </data>
+  <data name="AtLeastOnePlaylistRequired" xml:space="preserve">
+    <value>Es muss mindestens eine Playlist mit Titeln ausgewaehlt werden.</value>
+  </data>
+  <data name="SelectedPlaylistsContainNoTracks" xml:space="preserve">
+    <value>Die ausgewaehlten Playlists enthalten keine Titel.</value>
+  </data>
+  <data name="DestinationPlaylistWasNotCreated" xml:space="preserve">
+    <value>Die Ziel-Playlist wurde nicht erstellt.</value>
+  </data>
+  <data name="TrackWasNotFoundOnDestinationPlatform" xml:space="preserve">
+    <value>Der Titel wurde auf der Zielplattform nicht gefunden.</value>
+  </data>
+  <data name="TransferCreationFailed" xml:space="preserve">
+    <value>Der Transfer konnte nicht erstellt werden.</value>
+  </data>
+  <data name="TransferExecutionFailed" xml:space="preserve">
+    <value>Der Transfer konnte nicht ausgefuehrt werden.</value>
   </data>
 </root>

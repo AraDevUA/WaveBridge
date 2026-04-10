@@ -10,9 +10,5 @@ public class Role : IdentityRole<Guid>, IEntity<Guid>, IAuditableEntity, ISoftDe
     public DateTimeOffset? ModifiedUtc { get; set; }
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedUtc { get; set; }
-    public virtual ICollection<RolePermission> RolePermissions { get; set; }
-    public Role()
-    {
-        RolePermissions = [];
-    }
+    public virtual ICollection<RolePermission> RolePermissions { get; set; } = [];
 }

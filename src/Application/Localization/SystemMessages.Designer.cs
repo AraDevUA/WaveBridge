@@ -95,5 +95,68 @@ namespace Application.Localization {
                 return ResourceManager.GetString("PasswordTooWeak", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You must select at least one playlist with tracks..
+        /// </summary>
+        public static string AtLeastOnePlaylistRequired {
+            get {
+                return ResourceManager.GetString("AtLeastOnePlaylistRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Destination playlist was not created..
+        /// </summary>
+        public static string DestinationPlaylistWasNotCreated {
+            get {
+                return ResourceManager.GetString("DestinationPlaylistWasNotCreated", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Selected playlists do not contain tracks..
+        /// </summary>
+        public static string SelectedPlaylistsContainNoTracks {
+            get {
+                return ResourceManager.GetString("SelectedPlaylistsContainNoTracks", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Track was not found on destination platform..
+        /// </summary>
+        public static string TrackWasNotFoundOnDestinationPlatform {
+            get {
+                return ResourceManager.GetString("TrackWasNotFoundOnDestinationPlatform", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Transfer creation failed..
+        /// </summary>
+        public static string TransferCreationFailed {
+            get {
+                return ResourceManager.GetString("TransferCreationFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Transfer execution failed..
+        /// </summary>
+        public static string TransferExecutionFailed {
+            get {
+                return ResourceManager.GetString("TransferExecutionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User is not connected to {0}..
+        /// </summary>
+        public static string UserNotConnected {
+            get {
+                return ResourceManager.GetString("UserNotConnected", resourceCulture);
+            }
+        }
     }
 }

@@ -59,6 +59,9 @@ public static class ServiceCollectionExtensions
         services.AddOptions<AuthorizationOptions>()
             .Bind(configuration.GetSection("AuthorizationOptions"));
 
+        services.AddOptions<AdminUserOptions>()
+            .Bind(configuration.GetSection("AdminUser"));
+
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection("JwtOptions"))
             .ValidateDataAnnotations()

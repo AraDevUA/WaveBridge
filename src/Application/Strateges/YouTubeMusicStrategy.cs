@@ -1,4 +1,4 @@
-﻿using Application.Dto;
+using Application.Dto;
 using Application.Dto.Requests.Transfers;
 using Application.Dto.Streaming;
 using Application.Strateges.Abstractions;
@@ -14,7 +14,6 @@ public class YouTubeMusicStrategy : IStreamingStrategy
     public async Task AddTrackToPlaylistAsync(string playlistId, string trackId, string accessToken)
     {
         var service = CreateYouTubeService(accessToken);
-
         var item = new PlaylistItem
         {
             Snippet = new PlaylistItemSnippet
@@ -27,13 +26,13 @@ public class YouTubeMusicStrategy : IStreamingStrategy
                 }
             }
         };
+
         await service.PlaylistItems.Insert(item, "snippet").ExecuteAsync();
     }
 
     public async Task<PageDto<SourceTrackDto>> GetLikedTracksAsync(LikedTracksPagedRequestDto dto, string accessToken)
     {
         var service = CreateYouTubeService(accessToken);
-
         var request = service.Videos.List("snippet,contentDetails");
         request.MyRating = VideosResource.ListRequest.MyRatingEnum.Like;
         request.MaxResults = dto.PageSize;
@@ -41,17 +40,40 @@ public class YouTubeMusicStrategy : IStreamingStrategy
 
         var response = await request.ExecuteAsync();
 
-        var items = response.Items.Select(video => new SourceTrackDto
-        {
-            SourceId = video.Id,
-            TrackName = video.Snippet.Title,
-            Artist = video.Snippet.ChannelTitle,
-            Album = ""
-        });
-
         return new PageDto<SourceTrackDto>
         {
-            Items = items,
+            Items = response.Items.Select(video => new SourceTrackDto
+            {
+                SourceId = video.Id,
+                TrackName = video.Snippet.Title,
+                Artist = video.Snippet.ChannelTitle,
+                Album = string.Empty,
+                ArtworkUrl = video.Snippet.Thumbnails?.Medium?.Url ?? video.Snippet.Thumbnails?.Default__?.Url
+            }).ToList(),
+            TotalCount = (int)response.PageInfo.TotalResults
+        };
+    }
+
+    public async Task<PageDto<SourcePlaylistDto>> GetPlaylistsAsync(PagedRequest dto, string accessToken)
+    {
+        var service = CreateYouTubeService(accessToken);
+        var request = service.Playlists.List("snippet,contentDetails");
+        request.Mine = true;
+        request.MaxResults = dto.PageSize;
+
+        var response = await request.ExecuteAsync();
+
+        return new PageDto<SourcePlaylistDto>
+        {
+            Items = response.Items.Select(playlist => new SourcePlaylistDto
+            {
+                SourceId = playlist.Id,
+                Name = playlist.Snippet.Title,
+                Description = playlist.Snippet.Description,
+                ArtworkUrl = playlist.Snippet.Thumbnails?.Medium?.Url ?? playlist.Snippet.Thumbnails?.Default__?.Url,
+                Url = $"https://music.youtube.com/playlist?list={playlist.Id}",
+                TrackCount = (int?)playlist.ContentDetails?.ItemCount
+            }).ToList(),
             TotalCount = (int)response.PageInfo.TotalResults
         };
     }
@@ -59,7 +81,6 @@ public class YouTubeMusicStrategy : IStreamingStrategy
     public async Task<IEnumerable<SourceTrackDto>> GetPlaylistTracksAsync(string playlistId, string accessToken)
     {
         var service = CreateYouTubeService(accessToken);
-
         var request = service.PlaylistItems.List("snippet,contentDetails");
         request.PlaylistId = playlistId;
 
@@ -70,7 +91,8 @@ public class YouTubeMusicStrategy : IStreamingStrategy
             SourceId = x.ContentDetails.VideoId,
             TrackName = x.Snippet.Title,
             Artist = x.Snippet.VideoOwnerChannelTitle ?? x.Snippet.ChannelTitle,
-            Album = ""
+            Album = string.Empty,
+            ArtworkUrl = x.Snippet.Thumbnails?.Medium?.Url ?? x.Snippet.Thumbnails?.Default__?.Url
         }).ToList();
     }
 
@@ -79,7 +101,6 @@ public class YouTubeMusicStrategy : IStreamingStrategy
         try
         {
             var service = CreateYouTubeService(accessToken);
-
             var request = service.Search.List("snippet");
             request.Q = $"{track.Name} {track.Artist}";
             if (!string.IsNullOrEmpty(track.Album))
@@ -96,16 +117,15 @@ public class YouTubeMusicStrategy : IStreamingStrategy
         }
     }
 
-    public async Task<string> CreatePlaylistAsync(string name, string accessToken, string? description = null, bool isPublic = false)
+    public async Task<SourcePlaylistDto> CreatePlaylistAsync(string name, string accessToken, string? description = null, bool isPublic = false)
     {
         var service = CreateYouTubeService(accessToken);
-
         var playlist = new Playlist
         {
             Snippet = new PlaylistSnippet
             {
                 Title = name,
-                Description = description ?? ""
+                Description = description ?? string.Empty
             },
             Status = new PlaylistStatus
             {
@@ -113,16 +133,22 @@ public class YouTubeMusicStrategy : IStreamingStrategy
             }
         };
 
-        var request = service.Playlists.Insert(playlist, "snippet,status");
-        var response = await request.ExecuteAsync();
-        return response.Id;
+        var response = await service.Playlists.Insert(playlist, "snippet,status").ExecuteAsync();
+
+        return new SourcePlaylistDto
+        {
+            SourceId = response.Id,
+            Name = response.Snippet.Title,
+            Description = response.Snippet.Description,
+            ArtworkUrl = response.Snippet.Thumbnails?.Medium?.Url ?? response.Snippet.Thumbnails?.Default__?.Url,
+            Url = $"https://music.youtube.com/playlist?list={response.Id}"
+        };
     }
 
     public async Task<SourcePlaylistDto> GetPlaylistInfoAsync(string playlistId, string accessToken)
     {
         var service = CreateYouTubeService(accessToken);
-
-        var request = service.Playlists.List("snippet");
+        var request = service.Playlists.List("snippet,contentDetails");
         request.Id = playlistId;
 
         var response = await request.ExecuteAsync();
@@ -130,11 +156,16 @@ public class YouTubeMusicStrategy : IStreamingStrategy
 
         return new SourcePlaylistDto
         {
+            SourceId = playlist.Id,
             Name = playlist.Snippet.Title,
-            Description = playlist.Snippet.Description
+            Description = playlist.Snippet.Description,
+            ArtworkUrl = playlist.Snippet.Thumbnails?.Medium?.Url ?? playlist.Snippet.Thumbnails?.Default__?.Url,
+            Url = $"https://music.youtube.com/playlist?list={playlist.Id}",
+            TrackCount = (int?)playlist.ContentDetails?.ItemCount
         };
     }
-    private YouTubeService CreateYouTubeService(string accessToken)
+
+    private static YouTubeService CreateYouTubeService(string accessToken)
     {
         return new YouTubeService(new BaseClientService.Initializer
         {

@@ -1,6 +1,6 @@
-﻿namespace Application.Dto.Streaming;
+namespace Application.Dto.Requests.Transfers;
 
-public record SourceTrackDto
+public record CreateTransferTrackRequestDto
 {
     public string SourceId { get; init; } = string.Empty;
     public string TrackName { get; init; } = string.Empty;

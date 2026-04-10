@@ -129,4 +129,25 @@
   <data name="PasswordTooWeak" xml:space="preserve">
     <value>The password does not meet security requirements.</value>
   </data>
+  <data name="UserNotConnected" xml:space="preserve">
+    <value>User is not connected to {0}.</value>
+  </data>
+  <data name="AtLeastOnePlaylistRequired" xml:space="preserve">
+    <value>You must select at least one playlist with tracks.</value>
+  </data>
+  <data name="SelectedPlaylistsContainNoTracks" xml:space="preserve">
+    <value>Selected playlists do not contain tracks.</value>
+  </data>
+  <data name="DestinationPlaylistWasNotCreated" xml:space="preserve">
+    <value>Destination playlist was not created.</value>
+  </data>
+  <data name="TrackWasNotFoundOnDestinationPlatform" xml:space="preserve">
+    <value>Track was not found on destination platform.</value>
+  </data>
+  <data name="TransferCreationFailed" xml:space="preserve">
+    <value>Transfer creation failed.</value>
+  </data>
+  <data name="TransferExecutionFailed" xml:space="preserve">
+    <value>Transfer execution failed.</value>
+  </data>
 </root>
