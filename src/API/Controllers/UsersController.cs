@@ -29,9 +29,9 @@ public class UsersController : ControllerBase
         return result.ToApiResult();
     }
     [HttpPut("{id}")]
-    public async Task<IResult> UpdateAsync([FromRoute] Guid id, [FromBody] UserUpdateDto dto)
+    public async Task<IResult> UpdateAsync([FromRoute] Guid id, [FromBody] UserUpdateDto dto, CancellationToken cancellationToken)
     {
-        var result = await _userService.UpdateAsync(id, dto);
+        var result = await _userService.UpdateAsync(id, dto, cancellationToken);
         return result.ToApiResult();
     }
     [HttpDelete("{id}")]
@@ -44,16 +44,16 @@ public class UsersController : ControllerBase
 
     [HttpPost("{userId}/roles")]
     [Authorize(Roles = "SuperAdmin")]
-    public async Task<IResult> AssignRoleAsync([FromRoute] Guid userId, [FromBody] Guid roleId)
+    public async Task<IResult> AssignRoleAsync([FromRoute] Guid userId, [FromBody] Guid roleId, CancellationToken cancellationToken)
     {
-        var result = await _userService.AssignRoleAsync(userId, roleId);
+        var result = await _userService.AssignRoleAsync(userId, roleId, cancellationToken);
         return result.ToApiResult();
     }
     [HttpGet("roles")]
     [Authorize(Roles ="SuperAdmin")]
-    public async Task<IResult> GetRolesAsync()
+    public async Task<IResult> GetRolesAsync(CancellationToken cancellationToken)
     {
-        var result = await _userService.GetRolesAsync();
+        var result = await _userService.GetRolesAsync(cancellationToken);
         return result.ToApiResult();
     }
 

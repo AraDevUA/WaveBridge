@@ -51,7 +51,7 @@ public class JwtProvider : IJwtProvider
         {
             Token = accessToken,
             RefreshToken = rawToken,
-            User = user.ToDto(roles)
+            User = user.ToAuthDto()
         };
     }
 
@@ -96,7 +96,7 @@ public class JwtProvider : IJwtProvider
         {
             Token = newAccessToken,
             RefreshToken = newRaw, 
-            User = user.ToDto(roles)
+            User = user.ToAuthDto()
         }; 
     }
     private string GenerateAccessToken(User user, IList<string> roles)

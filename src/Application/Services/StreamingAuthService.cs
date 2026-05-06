@@ -14,16 +14,16 @@ public class StreamingAuthService : IStreamingAuthService
     {
         _facade = facade;
     }
-    public async Task<IServiceResult> GetAuthorizationUrlAsync(StreamingService service, Guid userId)
+    public async Task<IServiceResult> GetAuthorizationUrlAsync(StreamingService service, Guid userId, CancellationToken cancellationToken = default)
     {
         var result = _facade.GetAuthorizationUrl(service, userId);
 
         return ServiceResults.Ok(result);
     }
 
-    public async Task<IServiceResult> HandleCallbackAsync(string state, StreamingService service, string code)
+    public async Task<IServiceResult> HandleCallbackAsync(string state, StreamingService service, string code, CancellationToken cancellationToken = default)
     {
-        await _facade.HandleCallbackAsync(state, service, code);
+        await _facade.HandleCallbackAsync(state, service, code, cancellationToken);
 
         return ServiceResults.NoContent();
     }

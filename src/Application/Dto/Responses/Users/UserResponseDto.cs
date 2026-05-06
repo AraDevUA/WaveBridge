@@ -1,10 +1,9 @@
 ﻿namespace Application.Dto.Response.Users;
 
-public class UserResponseDto
+public record UserResponseDto
 {
-    public Guid Id { get; set; }
-    public string UserName { get; set; }
-    public string Email { get; set; }
-    public IEnumerable<string> Roles { get; set; }
-
+    public Guid Id { get; init; }
+    public string UserName { get; init; } = default!;
+    public string Email { get; init; } = default!;
+    public IEnumerable<string> Roles { get; init; } = [];
 }

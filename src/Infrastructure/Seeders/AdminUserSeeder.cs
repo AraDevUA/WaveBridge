@@ -5,7 +5,7 @@ using Shared.Options;
 
 namespace Infrastructure.Seeders;
 
-public sealed class AdminUserSeeder
+public class AdminUserSeeder
 {
     private const string SuperAdminRoleName = "SuperAdmin";
 

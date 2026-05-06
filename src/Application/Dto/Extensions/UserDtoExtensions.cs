@@ -1,5 +1,6 @@
 using Application.Dto.Request.Auth;
 using Application.Dto.Request.Users;
+using Application.Dto.Response.Auth;
 using Application.Dto.Response.Users;
 using Application.Dto.Responses.Auth;
 using Application.Dto.Responses.Auth.Google;
@@ -52,6 +53,15 @@ public static class UserDtoExtensions
             UserName = user.UserName,
             Email = user.Email,
             Roles = roles?.ToList() ?? new List<string>()
+        };
+    }
+    public static AuthUserResponseDto ToAuthDto(this User user)
+    {
+        return new AuthUserResponseDto
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Email = user.Email
         };
     }
     public static PageDto<UserResponseDto> ToPageDto(this IEnumerable<User> users, int totalCount, IEnumerable<string>? roles = null)

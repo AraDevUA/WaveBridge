@@ -21,19 +21,19 @@ public class StreamingAuthController : ControllerBase
 
     [HttpGet("{service}/url")]
     [Authorize]
-    public async Task<IResult> GetAuthUrl(StreamingService service)
+    public async Task<IResult> GetAuthUrl(StreamingService service, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
-        var result = await _service.GetAuthorizationUrlAsync(service, userId);
+        var result = await _service.GetAuthorizationUrlAsync(service, userId, cancellationToken);
 
         return result.ToApiResult();
     }
 
     [HttpGet("{service}/callback")]
     [AllowAnonymous]
-    public async Task<IResult> Callback(StreamingService service, [FromQuery] OAuthCallbackDto dto)
+    public async Task<IResult> Callback(StreamingService service, [FromQuery] OAuthCallbackDto dto, CancellationToken cancellationToken)
     {
-        var result = await _service.HandleCallbackAsync(dto.State, service, dto.Code);
+        var result = await _service.HandleCallbackAsync(dto.State, service, dto.Code, cancellationToken);
 
         return result.ToApiResult();
     }

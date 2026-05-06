@@ -42,7 +42,7 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             return ServiceResults.Failed(SystemMessages.InternalServerError);
         
-        return ServiceResults.Ok(user.ToDto());
+        return ServiceResults.NoContent();
     }
     public async Task<IServiceResult> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {

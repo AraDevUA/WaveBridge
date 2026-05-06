@@ -10,5 +10,8 @@ public class UserConfiguration : AuditableEntityConfiguration<User, Guid>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         base.Configure(builder);
+
+        builder.Property(x => x.AvatarUrl)
+            .HasMaxLength(2048);
     }
 }

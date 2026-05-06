@@ -1,8 +1,8 @@
 using Domain.Entities;
 
-namespace Application.Services;
+namespace Application.Results;
 
-internal sealed record TransferCreationResult(TransferOperation? TransferOperation, string? ErrorMessage)
+internal record TransferCreationResult(TransferOperation? TransferOperation, string? ErrorMessage)
 {
     public bool IsSuccess => TransferOperation is not null;
 

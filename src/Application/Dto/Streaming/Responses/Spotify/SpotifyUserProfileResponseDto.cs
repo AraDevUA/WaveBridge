@@ -1,6 +1,6 @@
 ﻿namespace Application.Dto.Streaming.Responses.Spotify;
 
-public class SpotifyUserProfileResponseDto
+public record SpotifyUserProfileResponseDto
 {
-    public string Id { get; init; }
+    public string Id { get; init; } = default!;
 }

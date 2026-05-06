@@ -1,8 +1,8 @@
 ﻿namespace Application.Dto.Request.Auth;
 
-public class OAuthUserRequestDto
+public record OAuthUserRequestDto
 {
-    public string Email { get; set; } = default!;
-    public string? UserName { get; set; }
-    public bool EmailConfirmed { get; set; } = true;
+    public string Email { get; init; } = default!;
+    public string? UserName { get; init; }
+    public bool EmailConfirmed { get; init; } = true;
 }

@@ -24,7 +24,7 @@ public class StreamingAuthFacade : IStreamingAuthFacade
         return _factory.GetStrategy(service).GetAuthorizationUrl(state);
     }
 
-    public async Task HandleCallbackAsync(string state, StreamingService service, string code)
+    public async Task HandleCallbackAsync(string state, StreamingService service, string code, CancellationToken cancellationToken = default)
     {
         var strategy = _factory.GetStrategy(service);
         var userId = _stateProvider.Unprotect(state);
@@ -33,7 +33,7 @@ public class StreamingAuthFacade : IStreamingAuthFacade
         var expiresAt = DateTimeOffset.UtcNow.AddSeconds(token.ExpiresIn);
 
         var connection = await _userStreamingConnectionRepository.All
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Service == service);
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.Service == service, cancellationToken);
 
         if (connection is null)
         {
@@ -45,7 +45,7 @@ public class StreamingAuthFacade : IStreamingAuthFacade
                 RefreshToken = token.RefreshToken,
                 AccessTokenExpiresAtUtc = expiresAt
             };
-            await _userStreamingConnectionRepository.CreateAsync(connection);
+            await _userStreamingConnectionRepository.CreateAsync(connection, cancellationToken);
             return;
         }
 
@@ -53,6 +53,6 @@ public class StreamingAuthFacade : IStreamingAuthFacade
         connection.RefreshToken = token.RefreshToken;
         connection.AccessTokenExpiresAtUtc = expiresAt;
 
-        await _userStreamingConnectionRepository.UpdateAsync(connection);
+        await _userStreamingConnectionRepository.UpdateAsync(connection, cancellationToken);
     }
 }

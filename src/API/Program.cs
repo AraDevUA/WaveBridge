@@ -5,10 +5,16 @@ using Infrastructure;
 using Infrastructure.Seeders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Localization;
+using Shared.Options;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//var railwayPort = Environment.GetEnvironmentVariable("PORT");
+//if (!string.IsNullOrWhiteSpace(railwayPort))
+//{
+//    builder.WebHost.UseUrls($"http://*:{railwayPort}");
+//}
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -52,6 +58,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddControllers();
 builder.AddApplicationServices();
 
+builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddApiAuthentication(builder.Configuration);
 
 builder.Services.AddOpenApi();
@@ -65,6 +72,9 @@ using (var scope = app.Services.CreateScope())
 
     var seeder = scope.ServiceProvider.GetRequiredService<AuthorizationSeeder>();
     await seeder.SeedAsync();
+
+    var adminUserSeeder = scope.ServiceProvider.GetRequiredService<AdminUserSeeder>();
+    await adminUserSeeder.SeedAsync();
 }
 
 if (app.Environment.IsDevelopment())
@@ -97,6 +107,8 @@ if (enableHttpsRedirection)
 {
     app.UseHttpsRedirection();
 }
+
+app.UseCors(CorsOptions.PolicyName);
 app.UseSession();
 
 app.UseAuthentication();

@@ -7,7 +7,7 @@ using Shared.Options;
 
 namespace Infrastructure.Seeders;
 
-public sealed class AuthorizationSeeder
+public class AuthorizationSeeder
 {
     private readonly RoleManager<Role> _roleManager;
     private readonly IRepository<Permission, Guid> _permissionRepository;
@@ -56,7 +56,9 @@ public sealed class AuthorizationSeeder
 
         foreach (var name in permissions)
         {
-            var exists = await _permissionRepository.All.AnyAsync(p => p.Name == name);
+            var exists = await _permissionRepository.All
+                .AsNoTracking()
+                .AnyAsync(p => p.Name == name);
             if (!exists)
             {
                 await _permissionRepository.CreateAsync(new Permission { Name = name });
@@ -88,10 +90,13 @@ public sealed class AuthorizationSeeder
             var role = await _roleManager.FindByNameAsync(rolePerm.RoleName);
             if (role is null) continue;
 
-            var permission = await _permissionRepository.All.SingleOrDefaultAsync(p => p.Name == rolePerm.PermissionName);
+            var permission = await _permissionRepository.All
+                .AsNoTracking()
+                .SingleOrDefaultAsync(p => p.Name == rolePerm.PermissionName);
             if (permission is null) continue;
 
             var exists = await _rolePermissionRepository.All
+                .AsNoTracking()
                 .AnyAsync(rp => rp.RoleId == role.Id && rp.PermissionId == permission.Id);
 
             if (!exists)

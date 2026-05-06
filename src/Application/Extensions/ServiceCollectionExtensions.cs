@@ -77,6 +77,11 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<FrontendOptions>()
+            .Bind(configuration.GetSection(FrontendOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddOptions<SpotifyAuthOptions>()
             .Bind(configuration.GetSection("OAuth:Spotify"))
             .ValidateDataAnnotations()

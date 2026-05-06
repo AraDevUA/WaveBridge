@@ -1,7 +1,9 @@
-﻿using API.Extensions;
+using API.Extensions;
+using Application.Dto.Jwt;
 using Application.Dto.Request.Auth;
 using Application.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace API.Controllers;
 
@@ -9,11 +11,17 @@ namespace API.Controllers;
 [Route("[controller]")]
 public class AuthController : ControllerBase
 {
+    private const string RefreshTokenCookieName = "refreshToken";
+
     private readonly IAuthService _authService;
-    public AuthController(IAuthService authService)
+    private readonly JwtOptions _jwtOptions;
+
+    public AuthController(IAuthService authService, IOptions<JwtOptions> jwtOptions)
     {
         _authService = authService;
+        _jwtOptions = jwtOptions.Value;
     }
+
     [HttpPost("register")]
     public async Task<IResult> RegisterAsync([FromBody] RegisterRequestDto dto, CancellationToken cancellationToken)
     {
@@ -25,19 +33,20 @@ public class AuthController : ControllerBase
     public async Task<IResult> LoginAsync([FromBody] LoginRequestDto dto, CancellationToken cancellationToken)
     {
         var result = await _authService.LoginAsync(dto, cancellationToken);
-        return result.ToApiResult();
+        return Response.ToAuthApiResult(result, _jwtOptions);
     }
-    //[HttpPost("logout")]
-    //public async Task<IResult> LogoutAsync()
-    //{
-    //    //TODO: Implement logout functionality 
-    //}
+
     [HttpPost("refresh-token")]
-    public async Task<IResult> RefreshTokenAsync([FromBody] string refreshToken, CancellationToken cancellationToken)
+    public async Task<IResult> RefreshTokenAsync(CancellationToken cancellationToken)
     {
+        var refreshToken = Request.Cookies[RefreshTokenCookieName];
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return Results.Unauthorized();
+
         var result = await _authService.RefreshAccessTokenAsync(refreshToken, cancellationToken);
-        return result.ToApiResult();
+        return Response.ToAuthApiResult(result, _jwtOptions);
     }
+
     //public async Task<IResult> ResetPassword()
     //{//TODO: Implement password reset functionality
     //}

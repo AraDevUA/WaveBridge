@@ -3,6 +3,7 @@ using Application.Dto.DtoExtensions;
 using Application.Dto.Requests.Transfers;
 using Application.Dto.Responses.Transfers;
 using Application.Dto.Streaming;
+using Application.Extensions;
 using Application.Localization;
 using Application.Results;
 using Application.Results.Interfaces;
@@ -34,15 +35,15 @@ public class TransferService : ITransferService
         _transferOperationRepository = transferOperationRepository;
     }
 
-    public async Task<IServiceResult> StartTransferAsync(Guid userId, StartTransferRequestDto dto)
+    public async Task<IServiceResult> StartTransferAsync(Guid userId, StartTransferRequestDto dto, CancellationToken cancellationToken = default)
     {
-        var createResult = await CreateTransferOperationAsync(userId, dto.ToCreateTransferRequestDto());
+        var createResult = await CreateTransferOperationAsync(userId, dto.ToCreateTransferRequestDto(), cancellationToken);
         if (!createResult.IsSuccess)
             return ServiceResults.Failed(createResult.ErrorMessage ?? SystemMessages.TransferCreationFailed);
 
         var transferOperation = createResult.TransferOperation!;
 
-        var executeResult = await ExecuteTransferAsync(userId, transferOperation, dto.ToExecuteTransferRequestDto());
+        var executeResult = await ExecuteTransferAsync(userId, transferOperation, dto.ToExecuteTransferRequestDto(), cancellationToken);
         if (!executeResult.IsSuccess)
             return ServiceResults.Failed(executeResult.ErrorMessage ?? SystemMessages.TransferExecutionFailed);
 
@@ -50,9 +51,9 @@ public class TransferService : ITransferService
         return ServiceResults.Ok(result.ToTransferDetailsResponseDto(GetFailedTracks(result)));
     }
 
-    public async Task<IServiceResult> GetPlaylistsAsync(Guid userId, StreamingService source, PagedRequest pagedRequest)
+    public async Task<IServiceResult> GetPlaylistsAsync(Guid userId, StreamingService source, PagedRequest pagedRequest, CancellationToken cancellationToken = default)
     {
-        var connection = await GetUserConnectionOrNullAsync(userId, source);
+        var connection = await GetUserConnectionOrNullAsync(userId, source, cancellationToken);
         if (connection is null)
             return ServiceResults.Failed(string.Format(SystemMessages.UserNotConnected, source));
 
@@ -61,9 +62,9 @@ public class TransferService : ITransferService
         return ServiceResults.Ok(playlists);
     }
 
-    public async Task<IServiceResult> GetPlaylistTracksAsync(Guid userId, StreamingService source, string playlistId)
+    public async Task<IServiceResult> GetPlaylistTracksAsync(Guid userId, StreamingService source, string playlistId, CancellationToken cancellationToken = default)
     {
-        var connection = await GetUserConnectionOrNullAsync(userId, source);
+        var connection = await GetUserConnectionOrNullAsync(userId, source, cancellationToken);
         if (connection is null)
             return ServiceResults.Failed(string.Format(SystemMessages.UserNotConnected, source));
 
@@ -72,9 +73,9 @@ public class TransferService : ITransferService
         return ServiceResults.Ok(tracks);
     }
 
-    public async Task<IServiceResult> GetLikedTracksAsync(Guid userId, StreamingService source, LikedTracksPagedRequestDto dto)
+    public async Task<IServiceResult> GetLikedTracksAsync(Guid userId, StreamingService source, LikedTracksPagedRequestDto dto, CancellationToken cancellationToken = default)
     {
-        var connection = await GetUserConnectionOrNullAsync(userId, source);
+        var connection = await GetUserConnectionOrNullAsync(userId, source, cancellationToken);
         if (connection is null)
             return ServiceResults.Failed(string.Format(SystemMessages.UserNotConnected, source));
 
@@ -82,13 +83,46 @@ public class TransferService : ITransferService
         var tracks = await _streamingFacade.GetLikedTracksAsync(source, dto, accessToken);
         return ServiceResults.Ok(tracks);
     }
+    public async Task<IServiceResult> GetTransferHistoryAsync(Guid userId, TransferHistoryRequestDto dto, CancellationToken cancellationToken = default)
+    {
+        var query = _transferOperationRepository.All
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreatedUtc);
 
-    private async Task<TransferCreationResult> CreateTransferOperationAsync(Guid userId, CreateTransferRequestDto dto)
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Paginate(dto.Page, dto.PageSize)
+            .Select(x => new TransferHistoryItemResponseDto
+            {
+                Id = x.Id,
+                SourceService = x.SourceService,
+                TargetService = x.TargetService,
+                Status = x.Status,
+                IsPublic = x.IsPublic,
+                ToSinglePlaylist = x.ToSinglePlaylist,
+                MergedTargetPlaylistUrl = x.MergedTargetPlaylistUrl,
+                StartedUtc = x.StartedUtc,
+                CompletedUtc = x.CompletedUtc,
+                PlaylistCount = x.TransferPlaylists.Count
+            })
+            .ToListAsync(cancellationToken);
+
+        var result = new PageDto<TransferHistoryItemResponseDto>()
+        {
+            Items = items,
+            TotalCount = totalCount
+        };
+
+        return ServiceResults.Ok(result);
+    }
+    private async Task<TransferCreationResult> CreateTransferOperationAsync(Guid userId, CreateTransferRequestDto dto, CancellationToken cancellationToken = default)
     {
         if (!dto.Playlists.Any())
             return TransferCreationResult.Failure(SystemMessages.AtLeastOnePlaylistRequired);
 
-        var sourceConnection = await GetUserConnectionOrNullAsync(userId, dto.Source);
+        var sourceConnection = await GetUserConnectionOrNullAsync(userId, dto.Source, cancellationToken);
         if (sourceConnection is null)
             return TransferCreationResult.Failure(string.Format(SystemMessages.UserNotConnected, dto.Source));
 
@@ -133,17 +167,17 @@ public class TransferService : ITransferService
         if (!transferOperation.TransferPlaylists.Any())
             return TransferCreationResult.Failure(SystemMessages.SelectedPlaylistsContainNoTracks);
 
-        await _transferOperationRepository.CreateAsync(transferOperation);
+        await _transferOperationRepository.CreateAsync(transferOperation, cancellationToken);
         return TransferCreationResult.Success(transferOperation);
     }
 
-    private async Task<TransferExecutionResult> ExecuteTransferAsync(Guid userId, TransferOperation transferOperation, ExecuteTransferRequestDto dto)
+    private async Task<TransferExecutionResult> ExecuteTransferAsync(Guid userId, TransferOperation transferOperation, ExecuteTransferRequestDto dto, CancellationToken cancellationToken = default)
     {
-        var sourceConnection = await GetUserConnectionOrNullAsync(userId, transferOperation.SourceService);
+        var sourceConnection = await GetUserConnectionOrNullAsync(userId, transferOperation.SourceService, cancellationToken);
         if (sourceConnection is null)
             return TransferExecutionResult.Failure(string.Format(SystemMessages.UserNotConnected, transferOperation.SourceService));
 
-        var destinationConnection = await GetUserConnectionOrNullAsync(userId, dto.Destination);
+        var destinationConnection = await GetUserConnectionOrNullAsync(userId, dto.Destination, cancellationToken);
         if (destinationConnection is null)
             return TransferExecutionResult.Failure(string.Format(SystemMessages.UserNotConnected, dto.Destination));
 
@@ -201,9 +235,9 @@ public class TransferService : ITransferService
         }
     }
 
-    public async Task<IServiceResult> GetTransferAsync(Guid userId, Guid transferId)
+    public async Task<IServiceResult> GetTransferAsync(Guid userId, Guid transferId, CancellationToken cancellationToken = default)
     {
-        var transferOperation = await GetTransferOperationAsync(userId, transferId);
+        var transferOperation = await GetTransferOperationAsync(userId, transferId, cancellationToken);
         if (transferOperation is null)
             return ServiceResults.NotFound();
 
@@ -314,18 +348,19 @@ public class TransferService : ITransferService
         }, accessToken);
     }
 
-    private async Task<UserStreamingConnection?> GetUserConnectionOrNullAsync(Guid userId, StreamingService service)
+    private async Task<UserStreamingConnection?> GetUserConnectionOrNullAsync(Guid userId, StreamingService service, CancellationToken cancellationToken = default)
     {
         return await _userStreamingConnectionRepository.All
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Service == service);
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.Service == service, cancellationToken);
     }
 
-    private async Task<TransferOperation?> GetTransferOperationAsync(Guid userId, Guid transferId)
+    private async Task<TransferOperation?> GetTransferOperationAsync(Guid userId, Guid transferId, CancellationToken cancellationToken = default)
     {
         return await _transferOperationRepository.All
+            .AsNoTracking()
             .Include(x => x.TransferPlaylists)
                 .ThenInclude(x => x.TransferTracks)
-            .FirstOrDefaultAsync(x => x.Id == transferId && x.UserId == userId);
+            .FirstOrDefaultAsync(x => x.Id == transferId && x.UserId == userId, cancellationToken);
     }
 
     private static string NormalizePlaylistDescription(string? description)

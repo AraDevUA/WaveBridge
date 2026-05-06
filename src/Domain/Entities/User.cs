@@ -9,6 +9,7 @@ public class User : IdentityUser<Guid>, IEntity<Guid>, IAuditableEntity, ISoftDe
     public DateTimeOffset? ModifiedUtc { get; set; }
     public DateTimeOffset? DeletedUtc { get; set; }
     public bool IsDeleted { get; set; }
+    public string? AvatarUrl { get; set; }
     public virtual ICollection<UserStreamingConnection> StreamingConnections { get; set; } = [];
     public virtual ICollection<UserOAuthConnection> OAuthConnections { get; set; } = [];
 }

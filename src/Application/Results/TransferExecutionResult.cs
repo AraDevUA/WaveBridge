@@ -1,6 +1,6 @@
-namespace Application.Services;
+namespace Application.Results;
 
-internal sealed record TransferExecutionResult(bool IsSuccess, string? ErrorMessage)
+internal record TransferExecutionResult(bool IsSuccess, string? ErrorMessage)
 {
     public static TransferExecutionResult Success()
     {

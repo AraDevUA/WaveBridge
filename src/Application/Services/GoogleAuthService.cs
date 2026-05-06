@@ -49,7 +49,9 @@ public class GoogleAuthService : IGoogleAuthService
     }
     public async Task<UserOAuthConnection?> GetUserOAuthConnectionAsync(Guid Id, CancellationToken cancellationToken = default)
     {
-        return await _userOAuthConnectionRepository.FindAsync(cancellationToken, Id);
+        return await _userOAuthConnectionRepository.All
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == Id, cancellationToken);
     }
     public async Task<string> RedirectOnOAuthServerAsync(CancellationToken cancellationToken = default)
     {
@@ -75,9 +77,17 @@ public class GoogleAuthService : IGoogleAuthService
         if (user is null)
         {
             user = googleUser.ToUserEntity();
+            if (!string.IsNullOrWhiteSpace(googleUser.Picture))
+                user.AvatarUrl = googleUser.Picture;
+
             var createResult = await _userManager.CreateAsync(user);
             if (!createResult.Succeeded)
                 return ServiceResults.Failed(SystemMessages.InternalServerError);
+        }
+        else if (!string.IsNullOrWhiteSpace(googleUser.Picture) && !string.Equals(user.AvatarUrl, googleUser.Picture, StringComparison.Ordinal))
+        {
+            user.AvatarUrl = googleUser.Picture;
+            await _userManager.UpdateAsync(user);
         }
 
         await UpsertGoogleConnectionAsync(user, googleUser, tokenResult, cancellationToken);
