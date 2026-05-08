@@ -153,9 +153,6 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("MergeTracksIntoSinglePlaylist")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("MergedTargetPlaylistId")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -178,6 +175,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<int?>("TargetService")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("ToSinglePlaylist")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -289,6 +289,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()

@@ -2,7 +2,6 @@ using Application.Dto.DtoExtensions;
 using Application.Dto.Jwt;
 using Application.Dto.Request.Auth;
 using Application.Dto.Response.Auth;
-using Application.Dto.Response.Users;
 using Application.Providers.Contracts;
 using Application.Services;
 using Domain.Entities;
@@ -101,7 +100,7 @@ public class AuthServiceTests
             {
                 Token = "access",
                 RefreshToken = "refresh",
-                User = user.ToDto(new[] { "User" })
+                User = user.ToAuthDto()
             });
 
         var dto = new LoginRequestDto { Email = user.Email, Password = "123" };
@@ -113,7 +112,7 @@ public class AuthServiceTests
         {
             Token = "access",
             RefreshToken = "refresh",
-            User = user.ToDto(new[] { "User" })
+            User = user.ToAuthDto()
         });
 
     }
@@ -140,7 +139,7 @@ public class AuthServiceTests
         result.Type.Should().Be(ServiceResultType.Conflict);
     }
     [Fact]
-    public async Task RegisterAsync_Success_ReturnsOkWithUserDto()
+    public async Task RegisterAsync_Success_ReturnsNoContent()
     {
         // Arrange
         var dto = new RegisterRequestDto
@@ -156,11 +155,8 @@ public class AuthServiceTests
         var result = await _authService.RegisterAsync(dto);
 
         // Assert
-        result.Type.Should().Be(ServiceResultType.Ok);
-        result.Data.Should().NotBeNull();
-
-        var userDto = result.Data.Should().BeAssignableTo<UserResponseDto>().Subject;
-        userDto.Email.Should().Be(dto.Email);
+        result.Type.Should().Be(ServiceResultType.NoContent);
+        result.Data.Should().BeNull();
     }
     #endregion
 

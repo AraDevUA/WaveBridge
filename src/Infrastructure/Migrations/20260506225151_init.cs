@@ -39,6 +39,7 @@ namespace Infrastructure.Migrations
                     ModifiedUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     DeletedUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -200,7 +201,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransferOperation",
+                name: "TransferOperations",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -209,7 +210,7 @@ namespace Infrastructure.Migrations
                     TargetService = table.Column<int>(type: "integer", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     IsPublic = table.Column<bool>(type: "boolean", nullable: false),
-                    MergeTracksIntoSinglePlaylist = table.Column<bool>(type: "boolean", nullable: false),
+                    ToSinglePlaylist = table.Column<bool>(type: "boolean", nullable: false),
                     MergedTargetPlaylistId = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     MergedTargetPlaylistUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     StartedUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -221,9 +222,9 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TransferOperation", x => x.Id);
+                    table.PrimaryKey("PK_TransferOperations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TransferOperation_AspNetUsers_UserId",
+                        name: "FK_TransferOperations_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -312,7 +313,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransferPlaylist",
+                name: "TransferPlaylists",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -326,17 +327,17 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TransferPlaylist", x => x.Id);
+                    table.PrimaryKey("PK_TransferPlaylists", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TransferPlaylist_TransferOperation_TransferOperationId",
+                        name: "FK_TransferPlaylists_TransferOperations_TransferOperationId",
                         column: x => x.TransferOperationId,
-                        principalTable: "TransferOperation",
+                        principalTable: "TransferOperations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransferTrack",
+                name: "TransferTracks",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -352,11 +353,11 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TransferTrack", x => x.Id);
+                    table.PrimaryKey("PK_TransferTracks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TransferTrack_TransferPlaylist_TransferPlaylistId",
+                        name: "FK_TransferTracks_TransferPlaylists_TransferPlaylistId",
                         column: x => x.TransferPlaylistId,
-                        principalTable: "TransferPlaylist",
+                        principalTable: "TransferPlaylists",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -421,18 +422,18 @@ namespace Infrastructure.Migrations
                 column: "PermissionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TransferOperation_UserId",
-                table: "TransferOperation",
+                name: "IX_TransferOperations_UserId",
+                table: "TransferOperations",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TransferPlaylist_TransferOperationId",
-                table: "TransferPlaylist",
+                name: "IX_TransferPlaylists_TransferOperationId",
+                table: "TransferPlaylists",
                 column: "TransferOperationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TransferTrack_TransferPlaylistId",
-                table: "TransferTrack",
+                name: "IX_TransferTracks_TransferPlaylistId",
+                table: "TransferTracks",
                 column: "TransferPlaylistId");
 
             migrationBuilder.CreateIndex(
@@ -481,7 +482,7 @@ namespace Infrastructure.Migrations
                 name: "RolePermissions");
 
             migrationBuilder.DropTable(
-                name: "TransferTrack");
+                name: "TransferTracks");
 
             migrationBuilder.DropTable(
                 name: "UserOAuthConnections");
@@ -496,10 +497,10 @@ namespace Infrastructure.Migrations
                 name: "Permissions");
 
             migrationBuilder.DropTable(
-                name: "TransferPlaylist");
+                name: "TransferPlaylists");
 
             migrationBuilder.DropTable(
-                name: "TransferOperation");
+                name: "TransferOperations");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
