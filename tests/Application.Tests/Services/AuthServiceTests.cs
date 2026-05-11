@@ -5,28 +5,27 @@ using Application.Dto.Response.Auth;
 using Application.Providers.Contracts;
 using Application.Services;
 using Domain.Entities;
-using Shared.Enums;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Moq;
+using Shared.Enums;
 using Xunit;
 
 namespace Application.Tests.Services;
 
 public class AuthServiceTests
 {
-    private Mock<UserManager<User>> _userManagerMock;
-    private Mock<IJwtProvider> _jwtProviderMock;
-    private AuthService _authService;
-
+    private readonly Mock<UserManager<User>> _userManagerMock;
+    private readonly Mock<IJwtProvider> _jwtProviderMock;
+    private readonly AuthService _authService;
 
     public AuthServiceTests()
     {
         var storeMock = new Mock<IUserStore<User>>();
 
         _userManagerMock = new Mock<UserManager<User>>(
-        storeMock.Object,
+            storeMock.Object,
         Options.Create(new IdentityOptions()),   // optionsAccessor
         new PasswordHasher<User>(),             // passwordHasher
         new IUserValidator<User>[0],           // userValidators
@@ -43,20 +42,23 @@ public class AuthServiceTests
             _userManagerMock.Object,
             _jwtProviderMock.Object,
             null!,
-            Options.Create(new JwtOptions())
-        );
+            Options.Create(new JwtOptions()));
     }
 
-    #region LoginAsync Tests
     [Fact]
     public async Task LoginAsync_UserNotFound_ReturnsUnauthorized()
     {
         // Arrange
+        var dto = new LoginRequestDto
+        {
+            Email = "test@example.com",
+            Password = "123"
+        };
+
         _userManagerMock
-            .Setup(um => um.FindByEmailAsync("test@example.com"))
+            .Setup(userManager => userManager.FindByEmailAsync(dto.Email))
             .ReturnsAsync((User?)null);
 
-        var dto = new LoginRequestDto { Email = "test@example.com", Password = "123" };
         // Act
         var result = await _authService.LoginAsync(dto);
 
@@ -69,9 +71,18 @@ public class AuthServiceTests
     {
         // Arrange
         var user = new User { Email = "test@example.com" };
-        _userManagerMock.Setup(um => um.FindByEmailAsync(user.Email)).ReturnsAsync(user);
-        _userManagerMock.Setup(um => um.CheckPasswordAsync(user, "wrongpassword")).ReturnsAsync(false);
-        var dto = new LoginRequestDto { Email = user.Email, Password = "wrongpass" };
+        var dto = new LoginRequestDto
+        {
+            Email = user.Email,
+            Password = "wrongpass"
+        };
+
+        _userManagerMock
+            .Setup(userManager => userManager.FindByEmailAsync(user.Email))
+            .ReturnsAsync(user);
+        _userManagerMock
+            .Setup(userManager => userManager.CheckPasswordAsync(user, dto.Password))
+            .ReturnsAsync(false);
 
         // Act
         var result = await _authService.LoginAsync(dto);
@@ -79,46 +90,41 @@ public class AuthServiceTests
         // Assert
         result.Type.Should().Be(ServiceResultType.Unauthorized);
     }
+
     [Fact]
     public async Task LoginAsync_ValidCredentials_ReturnsOkWithTokens()
     {
         // Arrange
         var user = new User { Email = "test@example.com" };
-        var roles = new[] { "User" };
-
-        _userManagerMock
-            .Setup(x => x.FindByEmailAsync(user.Email))
-            .ReturnsAsync(user);
-
-        _userManagerMock
-            .Setup(x => x.CheckPasswordAsync(user, "123"))
-            .ReturnsAsync(true);
-
-        _jwtProviderMock
-            .Setup(x => x.GenerateTokensAsync(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthResponseDto
-            {
-                Token = "access",
-                RefreshToken = "refresh",
-                User = user.ToAuthDto()
-            });
-
-        var dto = new LoginRequestDto { Email = user.Email, Password = "123" };
-        // Act
-        var result = await _authService.LoginAsync(dto);
-        // Assert
-        result.Type.Should().Be(ServiceResultType.Ok);
-        result.Data.Should().BeEquivalentTo(new AuthResponseDto
+        var dto = new LoginRequestDto
+        {
+            Email = user.Email,
+            Password = "123"
+        };
+        var expectedResponse = new AuthResponseDto
         {
             Token = "access",
             RefreshToken = "refresh",
             User = user.ToAuthDto()
-        });
+        };
 
+        _userManagerMock
+            .Setup(userManager => userManager.FindByEmailAsync(user.Email))
+            .ReturnsAsync(user);
+        _userManagerMock
+            .Setup(userManager => userManager.CheckPasswordAsync(user, dto.Password))
+            .ReturnsAsync(true);
+        _jwtProviderMock
+            .Setup(jwtProvider => jwtProvider.GenerateTokensAsync(user, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _authService.LoginAsync(dto);
+
+        // Assert
+        result.Type.Should().Be(ServiceResultType.Ok);
+        result.Data.Should().BeEquivalentTo(expectedResponse);
     }
-    #endregion
-
-    #region RegisterAsync Tests
 
     [Fact]
     public async Task RegisterAsync_FailedCreate_ReturnsFailed()
@@ -131,13 +137,16 @@ public class AuthServiceTests
         };
 
         _userManagerMock
-            .Setup(um => um.CreateAsync(It.IsAny<User>(), dto.Password))
+            .Setup(userManager => userManager.CreateAsync(It.IsAny<User>(), dto.Password))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError()));
+
         // Act
         var result = await _authService.RegisterAsync(dto);
+
         // Assert
         result.Type.Should().Be(ServiceResultType.Conflict);
     }
+
     [Fact]
     public async Task RegisterAsync_Success_ReturnsNoContent()
     {
@@ -149,8 +158,9 @@ public class AuthServiceTests
         };
 
         _userManagerMock
-            .Setup(um => um.CreateAsync(It.IsAny<User>(), dto.Password))
+            .Setup(userManager => userManager.CreateAsync(It.IsAny<User>(), dto.Password))
             .ReturnsAsync(IdentityResult.Success);
+
         // Act
         var result = await _authService.RegisterAsync(dto);
 
@@ -158,25 +168,29 @@ public class AuthServiceTests
         result.Type.Should().Be(ServiceResultType.NoContent);
         result.Data.Should().BeNull();
     }
-    #endregion
 
-    #region RefreshAccessTokenAsync Tests
     [Fact]
     public async Task RefreshAccessTokenAsync_InvalidToken_ReturnsUnauthorized()
     {
         // Arrange
+        const string refreshToken = "invalidtoken";
+
         _jwtProviderMock
-            .Setup(jp => jp.RefreshAccessTokenAsync("invalidtoken", It.IsAny<CancellationToken>()))
+            .Setup(jwtProvider => jwtProvider.RefreshAccessTokenAsync(refreshToken, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AuthResponseDto?)null);
+
         // Act
-        var result = await _authService.RefreshAccessTokenAsync("invalidtoken");
+        var result = await _authService.RefreshAccessTokenAsync(refreshToken);
+
         // Assert
         result.Type.Should().Be(ServiceResultType.Unauthorized);
     }
+
     [Fact]
     public async Task RefreshAccessTokenAsync_ValidToken_ReturnsOkWithNewTokens()
     {
         // Arrange
+        const string refreshToken = "token";
         var response = new AuthResponseDto
         {
             Token = "access",
@@ -184,15 +198,14 @@ public class AuthServiceTests
         };
 
         _jwtProviderMock
-            .Setup(x => x.RefreshAccessTokenAsync("token", It.IsAny<CancellationToken>()))
+            .Setup(jwtProvider => jwtProvider.RefreshAccessTokenAsync(refreshToken, It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         // Act
-        var result = await _authService.RefreshAccessTokenAsync("token");
+        var result = await _authService.RefreshAccessTokenAsync(refreshToken);
 
         // Assert
         result.Type.Should().Be(ServiceResultType.Ok);
         result.Data.Should().BeEquivalentTo(response);
-        #endregion
     }
 }

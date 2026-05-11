@@ -1,4 +1,4 @@
-﻿using Application.Dto.DtoExtensions;
+using Application.Dto.DtoExtensions;
 using Application.Dto.Jwt;
 using Application.Dto.Response.Auth;
 using Application.Helpers;
@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -20,19 +21,29 @@ public class JwtProvider : IJwtProvider
 {
     private readonly JwtOptions _options;
     private readonly IRepository<RefreshToken, Guid> _refreshTokenRepository;
+    private readonly IRepository<RolePermission, Guid> _rolePermissionRepository;
     private readonly UserManager<User> _userManager;
     private readonly ILogger<JwtProvider> _logger;
-    public JwtProvider(IOptions<JwtOptions> options, IRepository<RefreshToken, Guid> refreshTokenRepository, UserManager<User> userManager, ILogger<JwtProvider> logger)
+
+    public JwtProvider(
+        IOptions<JwtOptions> options,
+        IRepository<RefreshToken, Guid> refreshTokenRepository,
+        IRepository<RolePermission, Guid> rolePermissionRepository,
+        UserManager<User> userManager,
+        ILogger<JwtProvider> logger)
     {
         _options = options.Value;
         _refreshTokenRepository = refreshTokenRepository;
+        _rolePermissionRepository = rolePermissionRepository;
         _userManager = userManager;
         _logger = logger;
     }
+
     public async Task<AuthResponseDto> GenerateTokensAsync(User user, CancellationToken cancellationToken = default)
     {
         var roles = await _userManager.GetRolesAsync(user);
-        var accessToken = GenerateAccessToken(user, roles);
+        var permissions = await GetPermissionsAsync(roles, cancellationToken);
+        var accessToken = GenerateAccessToken(user, roles, permissions);
 
         var rawToken = Guid.NewGuid().ToString();
         var hashedToken = Sha256Helper.ComputeHash(rawToken);
@@ -74,7 +85,8 @@ public class JwtProvider : IJwtProvider
 
         var user = refreshToken.User;
         var roles = await _userManager.GetRolesAsync(user);
-        var newAccessToken = GenerateAccessToken(user, roles);
+        var permissions = await GetPermissionsAsync(roles, cancellationToken);
+        var newAccessToken = GenerateAccessToken(user, roles, permissions);
 
         refreshToken.IsRevoked = true;
         await _refreshTokenRepository.UpdateAsync(refreshToken, cancellationToken);
@@ -95,11 +107,12 @@ public class JwtProvider : IJwtProvider
         return new AuthResponseDto
         {
             Token = newAccessToken,
-            RefreshToken = newRaw, 
+            RefreshToken = newRaw,
             User = user.ToAuthDto()
-        }; 
+        };
     }
-    private string GenerateAccessToken(User user, IList<string> roles)
+
+    private string GenerateAccessToken(User user, IList<string> roles, ICollection<string> permissions)
     {
         var claims = new List<Claim>
         {
@@ -110,6 +123,9 @@ public class JwtProvider : IJwtProvider
 
         foreach (var role in roles)
             claims.Add(new Claim(ClaimTypes.Role, role));
+
+        foreach (var permission in permissions)
+            claims.Add(new Claim(CustomClaimTypes.Permission, permission));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -124,6 +140,20 @@ public class JwtProvider : IJwtProvider
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    private async Task<List<string>> GetPermissionsAsync(IList<string> roles, CancellationToken cancellationToken)
+    {
+        if (roles.Count == 0)
+            return [];
+
+        return await _rolePermissionRepository.All
+            .AsNoTracking()
+            .Where(rolePermission => rolePermission.Role.Name != null && roles.Contains(rolePermission.Role.Name))
+            .Select(rolePermission => rolePermission.Permission.Name)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     private async Task RevokeAllUserRefreshTokensAsync(Guid userId, CancellationToken cancellationToken)
     {
         var tokens = await _refreshTokenRepository.All

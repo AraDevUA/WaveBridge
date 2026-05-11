@@ -1,11 +1,15 @@
 using Application.Dto;
+using Application.Dto.Options;
 using Application.Dto.Requests.Transfers;
 using Application.Dto.Streaming;
+using Application.Helpers;
 using Application.Strateges.Abstractions;
 using Domain.Entities;
 using Shared.Enums;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
 
 namespace Application.Strateges;
 
@@ -13,11 +17,16 @@ public class StreamingFacade : IStreamingFacade
 {
     private readonly IStreamingStrategyFactory _factory;
     private readonly IRepository<UserStreamingConnection, Guid> _userStreamingConnectionRepository;
+    private readonly EncryptionOptions _encryptionOptions;
 
-    public StreamingFacade(IStreamingStrategyFactory factory, IRepository<UserStreamingConnection, Guid> userStreamingConnectionRepository)
+    public StreamingFacade(
+        IStreamingStrategyFactory factory,
+        IRepository<UserStreamingConnection, Guid> userStreamingConnectionRepository,
+        IOptions<EncryptionOptions> encryptionOptions)
     {
         _factory = factory;
         _userStreamingConnectionRepository = userStreamingConnectionRepository;
+        _encryptionOptions = encryptionOptions.Value;
     }
     public async Task<string> EnsureValidAccessTokenAsync(StreamingService platform, UserStreamingConnection connection)
     {
@@ -26,10 +35,12 @@ public class StreamingFacade : IStreamingFacade
 
         if (_factory.GetStrategy(platform) is IStreamingAuthStrategy authStrategy && !string.IsNullOrEmpty(connection.RefreshToken))
         {
-            var refreshedToken = await authStrategy.RefreshAsync(connection.RefreshToken);
+            var decryptedRefreshToken = DecryptRefreshToken(connection.RefreshToken);
+            var refreshedToken = await authStrategy.RefreshAsync(decryptedRefreshToken);
             connection.AccessToken = refreshedToken.AccessToken;
-            connection.RefreshToken = refreshedToken.RefreshToken ?? connection.RefreshToken;
+            connection.RefreshToken = EncryptRefreshToken(refreshedToken.RefreshToken ?? decryptedRefreshToken);
             connection.AccessTokenExpiresAtUtc = DateTimeOffset.UtcNow.AddSeconds(refreshedToken.ExpiresIn);
+            await _userStreamingConnectionRepository.SaveChangesAsync();
 
             return connection.AccessToken;
         }
@@ -76,5 +87,30 @@ public class StreamingFacade : IStreamingFacade
     {
         var strategy = _factory.GetStrategy(platform);
         return await strategy.CreatePlaylistAsync(name, accessToken, description, isPublic);
+    }
+
+    private string EncryptRefreshToken(string refreshToken)
+    {
+        return AesGcmHelper.Encrypt(refreshToken, _encryptionOptions.KeyBase64);
+    }
+
+    private string DecryptRefreshToken(string refreshToken)
+    {
+        try
+        {
+            return AesGcmHelper.Decrypt(refreshToken, _encryptionOptions.KeyBase64);
+        }
+        catch (FormatException)
+        {
+            return refreshToken;
+        }
+        catch (ArgumentException)
+        {
+            return refreshToken;
+        }
+        catch (CryptographicException)
+        {
+            return refreshToken;
+        }
     }
 }

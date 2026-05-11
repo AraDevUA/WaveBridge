@@ -1,9 +1,12 @@
 using Application.Providers.Contracts;
 using Application.Strateges.Abstractions;
+using Application.Dto.Options;
+using Application.Helpers;
 using Domain.Entities;
 using Shared.Enums;
 using Infrastructure.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Application.Strateges.Auth;
 
@@ -12,11 +15,17 @@ public class StreamingAuthFacade : IStreamingAuthFacade
     private readonly IStreamingAuthFactory _factory;
     private readonly IRepository<UserStreamingConnection, Guid> _userStreamingConnectionRepository;
     private readonly IOAuthStateProvider _stateProvider;
-    public StreamingAuthFacade(IStreamingAuthFactory factory, IRepository<UserStreamingConnection, Guid> userStreamingConnectionRepository, IOAuthStateProvider stateProvider)
+    private readonly EncryptionOptions _encryptionOptions;
+    public StreamingAuthFacade(
+        IStreamingAuthFactory factory,
+        IRepository<UserStreamingConnection, Guid> userStreamingConnectionRepository,
+        IOAuthStateProvider stateProvider,
+        IOptions<EncryptionOptions> encryptionOptions)
     {
         _factory = factory;
         _userStreamingConnectionRepository = userStreamingConnectionRepository;
         _stateProvider = stateProvider;
+        _encryptionOptions = encryptionOptions.Value;
     }
     public string GetAuthorizationUrl(StreamingService service, Guid userId)
     {
@@ -42,7 +51,7 @@ public class StreamingAuthFacade : IStreamingAuthFacade
                 UserId = userId,
                 Service = service,
                 AccessToken = token.AccessToken,
-                RefreshToken = token.RefreshToken,
+                RefreshToken = AesGcmHelper.Encrypt(token.RefreshToken, _encryptionOptions.KeyBase64),
                 AccessTokenExpiresAtUtc = expiresAt
             };
             await _userStreamingConnectionRepository.CreateAsync(connection, cancellationToken);
@@ -50,7 +59,9 @@ public class StreamingAuthFacade : IStreamingAuthFacade
         }
 
         connection.AccessToken = token.AccessToken;
-        connection.RefreshToken = token.RefreshToken;
+        if (!string.IsNullOrEmpty(token.RefreshToken))
+            connection.RefreshToken = AesGcmHelper.Encrypt(token.RefreshToken, _encryptionOptions.KeyBase64);
+
         connection.AccessTokenExpiresAtUtc = expiresAt;
 
         await _userStreamingConnectionRepository.UpdateAsync(connection, cancellationToken);
