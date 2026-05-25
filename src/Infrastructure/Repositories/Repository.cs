@@ -17,7 +17,6 @@ public class Repository<TContext, TEntity> : IRepository<TEntity, Guid>
         _context = context;
         _dbSet = _context.Set<TEntity>();
     }
-
     public IQueryable<TEntity> All => _dbSet.AsQueryable();
     public async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
     public async Task<TEntity?> FindAsync(CancellationToken cancellationToken = default, params object?[]? keyValue)
