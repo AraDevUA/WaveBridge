@@ -37,7 +37,7 @@ public class RefreshTokenMiddleware
             if (!string.IsNullOrWhiteSpace(refreshToken))
             {
                 var newTokens = await jwtProvider.RefreshAccessTokenAsync(refreshToken);
-                if (newTokens is not null)
+                if (newTokens is not null && !string.IsNullOrWhiteSpace(newTokens.RefreshToken))
                 {
                     AppendRefreshTokenCookie(context, newTokens.RefreshToken, options.Value.RefreshTokenLifetimeDays);
 

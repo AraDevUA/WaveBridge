@@ -6,6 +6,8 @@ namespace Application.Helpers;
 
 public static class AesGcmHelper
 {
+    private const int TagSizeInBytes = 16;
+
     public static string Encrypt(string plainText, string keyBase64)
     {
         if (string.IsNullOrEmpty(plainText)) throw new ArgumentException(nameof(plainText));
@@ -21,10 +23,10 @@ public static class AesGcmHelper
         RandomNumberGenerator.Fill(nonce);
 
         var ciphertext = new byte[plaintextBytes.Length];
-        var tag = new byte[16];
+        var tag = new byte[TagSizeInBytes];
         var aad = Encoding.UTF8.GetBytes("refresh_token_v1");
 
-        using (var aes = new AesGcm(key))
+        using (var aes = new AesGcm(key, TagSizeInBytes))
         {
             aes.Encrypt(nonce, plaintextBytes, ciphertext, tag, aad);
         }
@@ -51,11 +53,11 @@ public static class AesGcmHelper
         var key = Convert.FromBase64String(keyBase64);
         if (key.Length != 16 && key.Length != 24 && key.Length != 32)
             throw new ArgumentException("Invalid key length");
-        if (combined.Length < 12 + 16)
+        if (combined.Length < 12 + TagSizeInBytes)
             throw new ArgumentException("Invalid ciphertext");
 
         var nonce = new byte[12];
-        var tag = new byte[16];
+        var tag = new byte[TagSizeInBytes];
         var ciphertextLength = combined.Length - nonce.Length - tag.Length;
         var ciphertext = new byte[ciphertextLength];
 
@@ -66,7 +68,7 @@ public static class AesGcmHelper
         var plaintextBytes = new byte[ciphertextLength];
         var aad = Encoding.UTF8.GetBytes("refresh_token_v1");
 
-        using (var aes = new AesGcm(key))
+        using (var aes = new AesGcm(key, TagSizeInBytes))
         {
             aes.Decrypt(nonce, ciphertext, tag, plaintextBytes, aad);
         }
