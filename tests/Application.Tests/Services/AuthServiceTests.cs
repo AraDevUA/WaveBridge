@@ -40,9 +40,7 @@ public class AuthServiceTests
 
         _authService = new AuthService(
             _userManagerMock.Object,
-            _jwtProviderMock.Object,
-            null!,
-            Options.Create(new JwtOptions()));
+            _jwtProviderMock.Object);
     }
 
     [Fact]
