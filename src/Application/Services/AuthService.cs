@@ -1,15 +1,11 @@
 using Application.Dto.DtoExtensions;
-using Application.Dto.Jwt;
 using Application.Dto.Request.Auth;
 using Application.Providers.Contracts;
 using Application.Results;
 using Application.Results.Interfaces;
 using Application.Services.Contracts;
 using Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Shared.Enums;
 using Application.Localization;
 namespace Application.Services;
 
@@ -17,7 +13,7 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
     private readonly IJwtProvider _jwtProvider;
-    public AuthService(UserManager<User> userManager, IJwtProvider jwtProvider, IHttpContextAccessor httpContext, IOptions<JwtOptions> jwtOptions)
+    public AuthService(UserManager<User> userManager, IJwtProvider jwtProvider)
     {
         _userManager = userManager;
         _jwtProvider = jwtProvider;
@@ -40,8 +36,11 @@ public class AuthService : IAuthService
         var result = await _userManager.CreateAsync(user, dto.Password);
 
         if (!result.Succeeded)
-            return ServiceResults.Failed(SystemMessages.InternalServerError);
-        
+        {
+            var errors = string.Join(" ", result.Errors.Select(error => error.Description));
+            return ServiceResults.Failed(string.IsNullOrWhiteSpace(errors) ? SystemMessages.InternalServerError : errors);
+        }
+
         return ServiceResults.NoContent();
     }
     public async Task<IServiceResult> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default)

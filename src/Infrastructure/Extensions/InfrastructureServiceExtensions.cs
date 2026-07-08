@@ -5,6 +5,7 @@ using Infrastructure.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Infrastructure.Seeders;
 
@@ -21,7 +22,9 @@ public static class InfrastructureServiceExtensions
 
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
-            options.EnableSensitiveDataLogging();
+            if (sp.GetRequiredService<IHostEnvironment>().IsDevelopment())
+                options.EnableSensitiveDataLogging();
+
             options.UseNpgsql(configuration.GetConnectionString("WaveBridge"));
             options.AddInterceptors(
                 sp.GetRequiredService<SoftDeletableEntityInterceptor>(),

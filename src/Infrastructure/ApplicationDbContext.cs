@@ -25,9 +25,4 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-
-    }
 }

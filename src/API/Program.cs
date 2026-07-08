@@ -81,6 +81,8 @@ if (app.Environment.IsDevelopment())
 
 }
 
+app.UseExceptionHandlingMiddleware();
+
 var supportedCultures = new[]
     {
         new CultureInfo("en-US"),
@@ -108,7 +110,6 @@ app.UseCors(CorsOptions.PolicyName);
 app.UseSession();
 
 app.UseAuthentication();
-app.UseExceptionHandlingMiddleware();
 app.UseRefreshTokenMiddleware();
 app.UseAuthorization();
 
